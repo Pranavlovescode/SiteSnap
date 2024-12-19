@@ -17,12 +17,13 @@ router.get("/", (req, res) => {
   res.json({ message: "This is working" });
 });
 
-// Route for adding the user in database
+// `/api/v1/auth/signup`
 router.post("/signup",signupController );
 
-// Logging the user
+// `/api/v1/auth/login`
 router.post("/login", loginController);
 
+// `/api/v1/auth/logout`
 router.post("/logout", (req, res) => {
   res.clearCookie("auth_token");
   res.clearCookie("user_data");

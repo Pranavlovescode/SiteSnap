@@ -2,7 +2,8 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 import express from 'express'
-import router from './routes/api/v1/auth.js';
+import loginRouter from './routes/api/v1/auth.js';
+import teamRouter from './routes/api/v1/team.js'
 import cors from 'cors'
 import http from 'http'
 import cookieParser from 'cookie-parser'
@@ -29,7 +30,8 @@ app.use(cookieParser())
 //     cookie:{maxAge:60*60*1000}
 // }))
 
-app.use('/api/v1/',router)
+app.use('/api/v1/',loginRouter)
+app.use('/api/v1/',teamRouter)
 setUpWebSocket(server)
 
 server.listen(5000,()=>{

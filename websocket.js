@@ -40,20 +40,26 @@ export default async function setUpWebSocket(server) {
   });
 
   io.on("connection", (socket) => {
-    console.log("User is connected with id :", socket.id);
+    // console.log("User is connected with id :", socket.id);
 
-    socket.emit("message", "Welcome to the chat!");
+    // socket.emit("message", "Welcome to the chat!");
 
     // Handle events
     socket.on("message", async (msg) => {
-      await prisma.testMessage.create({
-        data: {
-          message: msg,
-          userId: socket.user.id,
-        },
-      });
+      // Saving message to database -> working
+      // await prisma.photoData.create({
+      //   data: {
+      //     message: msg,
+      //     userId: socket.user.id,
+      //   },
+      // });
+      io.emit("message-server", msg);
       console.log(`Message from ${socket.user.email}: ${msg}`);
     });
+
+    socket.on("team-message",(id)=>{
+      console.log('Connected to team-message',id)
+    })
 
     socket.on("disconnect", () => {
       console.log(`User disconnected: ${socket.user.email}`);
