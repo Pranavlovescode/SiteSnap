@@ -42,6 +42,8 @@ export default async function setUpWebSocket(server) {
   io.on("connection", (socket) => {
     console.log("User is connected with id :", socket.id);
 
+    socket.emit("message", "Welcome to the chat!");
+
     // Handle events
     socket.on("message", async (msg) => {
       await prisma.testMessage.create({
