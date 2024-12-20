@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Loader2 } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -28,10 +28,9 @@ import {
 import axios from "axios";
 import toast from "react-hot-toast";
 import Link from "next/link";
-import Image from "next/image";
-import { signIn, signOut, useSession } from 'next-auth/react';
 
 const loginSchema = z.object({
+  name: z.string().min(1, "Name is required"),
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   // .regex(
@@ -40,12 +39,13 @@ const loginSchema = z.object({
   // ),
 });
 
-export default function LoginForm() {
+export default function SignUpForm() {
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
+      name:"",
       email: "",
       password: "",
     },
@@ -56,9 +56,10 @@ export default function LoginForm() {
     setIsLoading(true);
     // Simulate API call
     try {
-      const loginResponse = await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND}/api/v1/login`,
-        {
+      const signupResponse = await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND}/api/v1/signup`,
+        { 
+          name:values.name,
           email: values.email,
           password: values.password,
         },
@@ -69,20 +70,21 @@ export default function LoginForm() {
           withCredentials: true,
         }
       );
-      const data = loginResponse.data;
+      const data = signupResponse.data;
       console.log("The login response is: ", data);
-      if (loginResponse.status === 200) {
-        toast.success("You have successfully logged in.");
+      if (signupResponse.status === 200) {
+        toast.success("You have successfully signed up.");
         setIsLoading(false);
         await new Promise((resolve) => setTimeout(resolve, 1000));
+        values.name = "";
         values.email = "";
         values.password = "";
       } else {
-        toast.error("Invalid credentials. Please try again.");
+        toast.error("Some error occuerd. Please try again.");
       }
     } catch (error) {
       console.error(error);
-      toast.error("An error occurred. Please try again later.");
+      toast.error("Some error occuerd. Please try again.");
     }
   }
 
@@ -90,15 +92,33 @@ export default function LoginForm() {
     <Card className="w-full max-w-md mx-auto backdrop-blur-md bg-white/30 dark:bg-black/30 border-0">
       <CardHeader className="space-y-2">
         <CardTitle className="text-3xl font-bold text-center">
-          Welcome Back
+          Sign Up
         </CardTitle>
         <CardDescription className="text-center text-gray-800">
-          Enter your credentials to access your account
+          Enter your credentials to be part of our community.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter your name"
+                      type="text"
+                      {...field}
+                      className="bg-white/30 dark:bg-black/30 backdrop-blur-sm"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="email"
@@ -139,39 +159,29 @@ export default function LoginForm() {
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
+                  Signing up...
                 </>
               ) : (
-                "Sign In"
+                "Sign Up"
               )}
             </Button>
           </form>
         </Form>
       </CardContent>
       <CardFooter className="flex flex-col space-y-4">
-        <div className="text-sm text-center text-gray-800">
+        {/* <div className="text-sm text-center text-gray-800">
           <a href="#" className="underline underline-offset-4">
             Forgot your password?
           </a>
-        </div>
+        </div> */}
         <div className="text-sm text-center text-gray-800">
-          Don&apos;t have an account?{" "}
+          Already have an account?{" "}
           <Link
-            href="/signup"
+            href="/"
             className="hover:text-primary underline underline-offset-4"
           >
-            Sign up
+            Login
           </Link>
-        </div>
-        <div className="flex flex-row items-center space-x-4 justify-center">
-          <Separator className="bg-gray-900" />
-          <span className="text-gray-900">or</span>
-          <Separator className="bg-gray-900" />
-        </div>
-        <div className="md:w-1/2">
-          <Button onClick={() => signIn('google')} className="w-full">
-            <Image src={"https://cloudinary-res.cloudinary.com/image/upload/v1645708175/sign_up/cdnlogo.com_google-icon.svg"} height={23} width={23} alt="Google logo"/> Sign Up with Google
-          </Button>
         </div>
       </CardFooter>
     </Card>

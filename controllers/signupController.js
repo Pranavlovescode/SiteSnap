@@ -1,39 +1,76 @@
 import { PrismaClient } from "@prisma/client";
 import { SignUpSchema } from "../types/index.js";
 import bcrypt from "bcrypt";
+import e from "express";
 
 
 const prisma = new PrismaClient();
 
 export const signupController = async (req, res) => {
   try {
-    const body = req.body;
-    console.log("The request body is ", body);
-    const parseData = SignUpSchema.safeParse(body);
+    const {email,name,password} = req.body;
+    console.log("The request body is ", email,name,password);
+    // const parseData = SignUpSchema.safeParse(body);
     const userFound = await prisma.user.findUnique({
       where: {
-        email: parseData.data.email,
+        email: email,
       },
     });
-    if (userFound && parseData.success) {
+    console.log("user found",userFound)
+    if (userFound) {
+      console.log("User already exists");
       res.status(400).json({ message: "User already exists" });
-    } else if (parseData.success) {
+    } else if (userFound==null) {
       // console.log(parseData)
-      const data = parseData.data;
-      const hashPassword = await bcrypt.hash(data.password, 10);
+      // const data = body;
+      const hashPassword = await bcrypt.hash(password, 10);
       console.log(hashPassword);
       await prisma.user.create({
         data: {
-          email: data.email,
-          name: data.name,
-          password: hashPassword,
+          email: email,
+          name: name,
+          password: hashPassword || null,
         },
       });
       res.status(200).json({ message: "User created successfully" });
     } else {
-      res.status(404).json({ messgae: "Failed to create a user" });
+      res.status(404).json({ messgae: "Failed to create a user from else part" });
     }
   } catch (error) {
-    res.status(500).json({ message: "Failed to create user" });
+    res.status(500).json({ message: "Failed to create user from catch" });
+  }
+};
+export const signupWithGoogle = async (req, res) => {
+  try {
+    const {email,name,password} = req.body;
+    console.log("The request body is ", email,name,password);
+    // const parseData = SignUpSchema.safeParse(body);
+    const userFound = await prisma.user.findUnique({
+      where: {
+        email: email,
+      },
+    });
+    console.log("user found",userFound)
+    if (userFound) {
+      console.log("User already exists");
+      res.status(400).json({ message: "User already exists" });
+    } else if (userFound==null) {
+      // console.log(parseData)
+      // const data = body;
+      // const hashPassword = await bcrypt.hash(password, 10);
+      // console.log(hashPassword);
+      await prisma.user.create({
+        data: {
+          email: email,
+          name: name,
+          password: null
+        },
+      });
+      res.status(200).json({ message: "User created successfully" });
+    } else {
+      res.status(404).json({ messgae: "Failed to create a user from else part" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Failed to create user from catch" });
   }
 };

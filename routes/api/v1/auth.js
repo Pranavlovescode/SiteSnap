@@ -1,7 +1,7 @@
 import { Router } from "express";
 import isAuthenticated from '../../../middlewares/verifyToken.js'
 import {loginController} from '../../../controllers/loginController.js'
-import {signupController} from '../../../controllers/signupController.js'
+import {signupController, signupWithGoogle} from '../../../controllers/signupController.js'
 
 const router = Router();
 
@@ -19,6 +19,7 @@ router.get("/", (req, res) => {
 
 // `/api/v1/auth/signup`
 router.post("/signup",signupController );
+router.post("/signupWithGoogle",signupWithGoogle );
 
 // `/api/v1/auth/login`
 router.post("/login", loginController);
