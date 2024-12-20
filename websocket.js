@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 export default async function setUpWebSocket(server) {
   const io = new Server(server, {
     cors: {
-      origin: "*",
+      origin: "http://localhost:3000",
       methods: ["GET", "POST"],
       credentials: true,
     },
@@ -17,7 +17,7 @@ export default async function setUpWebSocket(server) {
     console.log("Headers:", socket.handshake.headers);
     const cookies = socket.handshake.headers.cookie;
     console.log("Cookies:", cookies);
-    if (!cookies) {
+    if (!cookies || cookies === undefined) {
       return next(new Error("Unauthorized: No cookies provided"));
     }
 
@@ -40,7 +40,7 @@ export default async function setUpWebSocket(server) {
   });
 
   io.on("connection", (socket) => {
-    // console.log("User is connected with id :", socket.id);
+    console.log("User is connected with id :", socket.id);
 
     // socket.emit("message", "Welcome to the chat!");
 
