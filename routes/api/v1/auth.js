@@ -1,7 +1,11 @@
 import { Router } from "express";
-import isAuthenticated from '../../../middlewares/verifyToken.js'
-import {loginController} from '../../../controllers/loginController.js'
-import {signupController, signupWithGoogle} from '../../../controllers/signupController.js'
+import isAuthenticated from "../../../middlewares/verifyToken.js";
+import { loginController } from "../../../controllers/loginController.js";
+import {
+  signupController,
+  signupWithGoogle,
+} from "../../../controllers/signupController.js";
+import passport from "passport";
 
 const router = Router();
 
@@ -18,8 +22,19 @@ router.get("/", (req, res) => {
 });
 
 // `/api/v1/auth/signup`
-router.post("/signup",signupController );
-router.post("/signupWithGoogle",signupWithGoogle );
+router.post("/signup", signupController);
+// router.post("/signupWithGoogle",signupWithGoogle );
+
+router.get(
+  "/login/google",
+  passport.authenticate("google", { scope: ["profile","openid","email"] })
+);
+
+router.get("/google/callback",passport.authenticate('google',{
+  successRedirect:process.env.FRONTEND_URL
+}),(req,res)=>{
+  res.redirect(`${process.env.FRONTEND_URL}/protected`)
+});
 
 // `/api/v1/auth/login`
 router.post("/login", loginController);
@@ -28,6 +43,7 @@ router.post("/login", loginController);
 router.post("/logout", (req, res) => {
   res.clearCookie("auth_token");
   res.clearCookie("user_data");
+  res.clearCookie("connect.sid");
   res.status(200).json({ message: "Logout successfull" });
 });
 
@@ -49,8 +65,8 @@ router.post("/logout", (req, res) => {
 
 // Protected route example
 router.get("/protected", isAuthenticated, (req, res) => {
-  const user_data = JSON.parse(req.cookies.user_data)
-  res.status(200).json({ message: `Welcome ${user_data.name}` });
+  const user_data = JSON.parse(req.cookies.user_data);
+  res.json({ message: `Welcome ${user_data.name}` });
 });
 
 export default router;

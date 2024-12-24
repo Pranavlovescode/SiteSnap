@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -29,7 +29,8 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import Image from "next/image";
-import { signIn, signOut, useSession } from 'next-auth/react';
+import { signIn, signOut, useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -42,6 +43,8 @@ const loginSchema = z.object({
 
 export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
+
+  const navigate = useRouter();
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -75,6 +78,7 @@ export default function LoginForm() {
         toast.success("You have successfully logged in.");
         setIsLoading(false);
         await new Promise((resolve) => setTimeout(resolve, 1000));
+        navigate.push("/protected");
         values.email = "";
         values.password = "";
       } else {
@@ -85,6 +89,26 @@ export default function LoginForm() {
       toast.error("An error occurred. Please try again later.");
     }
   }
+
+  const signUpWithGoogle = async (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Redirecting...");
+
+    // const popup = window.open(
+    //   "http://localhost:5000/api/v1/login/google",
+    //   "_blank",
+    //   "width=500,height=600"
+    // );
+
+    // const popupInterval = setInterval(() => {
+    //   if (!popup || popup.closed) {
+    //     clearInterval(popupInterval);
+    //     console.log("Popup closed by user");
+    //   }
+    // }, 500);
+
+    window.location.href = `${process.env.NEXT_PUBLIC_BACKEND}/api/v1/login/google`;
+  };
 
   return (
     <Card className="w-full max-w-md mx-auto backdrop-blur-md bg-white/30 dark:bg-black/30 border-0">
@@ -169,8 +193,16 @@ export default function LoginForm() {
           <Separator className="bg-gray-900" />
         </div>
         <div className="md:w-1/2">
-          <Button onClick={() => signIn('google')} className="w-full">
-            <Image src={"https://cloudinary-res.cloudinary.com/image/upload/v1645708175/sign_up/cdnlogo.com_google-icon.svg"} height={23} width={23} alt="Google logo"/> Sign Up with Google
+          <Button onClick={signUpWithGoogle} className="w-full">
+            <Image
+              src={
+                "https://cloudinary-res.cloudinary.com/image/upload/v1645708175/sign_up/cdnlogo.com_google-icon.svg"
+              }
+              height={23}
+              width={23}
+              alt="Google logo"
+            />{" "}
+            Sign Up with Google
           </Button>
         </div>
       </CardFooter>

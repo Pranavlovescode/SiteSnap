@@ -8,6 +8,9 @@ import cors from "cors";
 import http from "http";
 import cookieParser from "cookie-parser";
 import setUpWebSocket from "./websocket.js";
+import passport from "passport";
+import { initializePassport } from "./config/passport-local.js";
+import session from "express-session";
 
 const app = express();
 const server = http.createServer(app);
@@ -16,20 +19,35 @@ const server = http.createServer(app);
 //     console.log("User is connected with id :",socket.id)
 // })
 
+// Setting up the CORS policy
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: `${process.env.FRONTEND_URL}`,
     credentials: true,
   })
 );
+
+// Used to store session data
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: true,
+    cookie: { maxAge: 24*60 * 60 * 1000 }, // 24 hours
+  })
+);
+
+// Used to for google login
+app.use(passport.initialize());
+app.use(passport.session())
+app.use(passport.authenticate("session"))
+
+initializePassport(passport);
+
 app.use(express.json());
 app.use(cookieParser());
-// app.use(session({
-//     secret:process.env.SESSION_SECRET || "qljfe9KrD9HF3i+9b3B5xpdErJJbUF+rw9vgUoO61rg=",
-//     resave:false,
-//     saveUninitialized:true,
-//     cookie:{maxAge:60*60*1000}
-// }))
+
+
 
 app.use("/api/v1/", loginRouter);
 app.use("/api/v1/", teamRouter);

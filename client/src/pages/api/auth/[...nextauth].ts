@@ -18,6 +18,7 @@ export default NextAuth({
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            credentials:'include',
             body: JSON.stringify({
               name: user.name,
               email: user.email,
@@ -25,6 +26,8 @@ export default NextAuth({
             }),
           }
         );
+        console.log("Sign-in callback: Sending data to backend:", { name: user.name, email: user.email });
+        console.log("Sign-in callback: Backend response:", response);
 
         if (!response.ok) {
           const error = await response.json();
