@@ -202,7 +202,7 @@ export default function LoginForm() {
               width={23}
               alt="Google logo"
             />{" "}
-            Sign Up with Google
+            Sign In with Google
           </Button>
         </div>
       </CardFooter>

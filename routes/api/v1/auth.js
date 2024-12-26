@@ -33,7 +33,7 @@ router.get(
 router.get("/google/callback",passport.authenticate('google',{
   successRedirect:process.env.FRONTEND_URL
 }),(req,res)=>{
-  res.redirect(`${process.env.FRONTEND_URL}/protected`)
+  res.redirect(`${process.env.FRONTEND_URL}/dashboard`)
 });
 
 // `/api/v1/auth/login`

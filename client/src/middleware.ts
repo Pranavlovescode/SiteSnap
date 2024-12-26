@@ -11,7 +11,7 @@ export function middleware(req: NextRequest) {
   console.log("Executing middleware");
 
   if (publicPath && (auth_token || session_cookie)) {
-    return NextResponse.redirect(new URL("/protected", req.url));
+    return NextResponse.redirect(new URL("/dashboard", req.url));
   }
   if (!publicPath && !(auth_token || session_cookie)) {
     return NextResponse.redirect(new URL("/", req.url));
@@ -19,5 +19,5 @@ export function middleware(req: NextRequest) {
 }
 // Routes that need to be protected
 export const config = {
-  matcher: ['/protected'],
+  matcher: ['/dashboard'],
 };
