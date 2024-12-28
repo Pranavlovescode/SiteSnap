@@ -4,6 +4,7 @@ dotenv.config();
 import express from "express";
 import loginRouter from "./routes/api/v1/auth.js";
 import teamRouter from "./routes/api/v1/team.js";
+import uploadImageRouter from "./routes/api/v1/upload-image.js"
 import cors from "cors";
 import http from "http";
 import cookieParser from "cookie-parser";
@@ -11,6 +12,7 @@ import setUpWebSocket from "./websocket.js";
 import passport from "passport";
 import { initializePassport } from "./config/passport-local.js";
 import session from "express-session";
+import path from "path";
 
 const app = express();
 const server = http.createServer(app);
@@ -44,13 +46,17 @@ app.use(passport.authenticate("session"))
 
 initializePassport(passport);
 
+app.use(express.static(path.join(path.resolve(), "")));
+
 app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 
 
 app.use("/api/v1/", loginRouter);
 app.use("/api/v1/", teamRouter);
+app.use("/api/v1/upload-image",uploadImageRouter)
 setUpWebSocket(server);
 
 server.listen(5000, () => {
