@@ -22,31 +22,31 @@ export default async function setUpWebSocket(server) {
   //   console.log(base64);
   // });
 
-  // io.use((socket, next) => {
-  //   console.log("Headers:", socket.handshake.headers);
-  //   const cookies = socket.handshake.headers.cookie;
-  //   console.log("Cookies:", cookies);
-  //   if (!cookies || cookies === undefined) {
-  //     return next(new Error("Unauthorized: No cookies provided"));
-  //   }
+  io.use((socket, next) => {
+    console.log("Headers:", socket.handshake.headers);
+    const cookies = socket.handshake.headers.cookie;
+    console.log("Cookies:", cookies);
+    if (!cookies || cookies === undefined) {
+      return next(new Error("Unauthorized: No cookies provided"));
+    }
 
-  //   const parsedCookies = cookie.parse(cookies);
-  //   const authCookie = parsedCookies.auth_token;
+    const parsedCookies = cookie.parse(cookies);
+    const authCookie = parsedCookies.auth_token;
 
-  //   console.log("Parsed Cookie :", authCookie);
-  //   if (!authCookie || authCookie === "null") {
-  //     return next(new Error("Unauthorized: No token provided"));
-  //   } else {
-  //     jwt.verify(authCookie, process.env.JWT_SECRET, (err, decoded) => {
-  //       if (err) {
-  //         return next(new Error("Unauthorized: Invalid token"));
-  //       }
-  //       socket.user = decoded;
-  //       console.log(decoded);
-  //       next();
-  //     });
-  //   }
-  // });
+    console.log("Parsed Cookie :", authCookie);
+    if (!authCookie || authCookie === "null") {
+      return next(new Error("Unauthorized: No token provided"));
+    } else {
+      jwt.verify(authCookie, process.env.JWT_SECRET, (err, decoded) => {
+        if (err) {
+          return next(new Error("Unauthorized: Invalid token"));
+        }
+        socket.user = decoded;
+        console.log(decoded);
+        next();
+      });
+    }
+  });
 
   io.on("connection", (socket) => {
     console.log("User is connected with id :", socket.id);
@@ -72,8 +72,12 @@ export default async function setUpWebSocket(server) {
 
     socket.on("upload-image", async (data) => {
       console.log("Image received", data);
-      
-      io.emit('process-status', { success: true, message: 'Image processed successfully!',path:data.path });
+
+      io.emit("process-status", {
+        success: true,
+        message: "Image processed successfully!",
+        path: data,
+      });
     });
 
     // socket.on("disconnect", () => {

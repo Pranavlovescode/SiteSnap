@@ -1,16 +1,19 @@
-'use client';
+"use client";
 
 import { io } from "socket.io-client";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { Button } from "@/components/ui/button";
 
 export default function UploadImage() {
-  const [image, setImage] = useState<File | null>(null);
-  const [socket, setSocket] = useState<any>(null);
+  const [image, setImage] = useState<File[] | null>(null);
+  const [socket, setSocket] = useState<any | null>(null);
 
   useEffect(() => {
     // Establish socket connection
-    const newSocket = io("http://localhost:5000");
+    const newSocket = io(`${process.env.NEXT_PUBLIC_BACKEND}`, {
+      withCredentials: true,
+    });
     setSocket(newSocket);
 
     // Cleanup on component unmount
@@ -27,8 +30,10 @@ export default function UploadImage() {
 
     try {
       const formData = new FormData();
-      formData.append("image", image);
-
+      image.forEach((file)=>{
+        formData.append("image",file);
+      })
+      console.log("Image data",formData);
       console.log("Uploading image...");
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND}/api/v1/upload-image`,
@@ -37,11 +42,12 @@ export default function UploadImage() {
           headers: {
             "Content-Type": "multipart/form-data",
           },
+          withCredentials: true,
         }
       );
 
-      console.log("Image uploaded:", response.data);
-      return response.data.multer.path; // Return the uploaded image path
+      console.log("Image uploaded:", response.data.cloudinary);
+      return response.data.cloudinary; // Return the uploaded image paths
     } catch (error) {
       console.error("Error uploading image:", error);
       return null;
@@ -60,8 +66,10 @@ export default function UploadImage() {
       const imagePath = await uploadImage(); // Wait for image upload to complete
       if (imagePath) {
         // Emit the event to the Socket.IO server
-        socket.emit("upload-image", { path: imagePath });
-        console.log("Image path sent to server via socket:", imagePath);
+        const paths = Array.isArray(imagePath) ? imagePath.map((image) => image.secure_url) : [imagePath];
+        console.log("The paths are ",paths)
+        socket.emit("upload-image", paths);
+        console.log("Image path sent to server via socket:", paths);
       } else {
         console.error("Failed to upload image");
       }
@@ -73,19 +81,20 @@ export default function UploadImage() {
   return (
     <>
       <h1>Upload Image</h1>
-      <p>Upload Image Page</p>
+      {/* <p>Upload Image Page</p> */}
       <form onSubmit={handleSubmit}>
         <input
           type="file"
           name="image"
+          multiple={true}
           id="image"
           onChange={(e) => {
-            if (e.target.files && e.target.files.length > 0) {
-              setImage(e.target.files[0]);
+            if (e.target.files) {
+              setImage(Array.from(e.target.files));
             }
           }}
         />
-        <button type="submit">Upload</button>
+        <Button type="submit">Upload</Button>
       </form>
     </>
   );

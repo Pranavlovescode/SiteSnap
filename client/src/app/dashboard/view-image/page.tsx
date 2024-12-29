@@ -9,13 +9,19 @@ export default function RealTimeImages() {
 
   useEffect(() => {
     // Establish socket connection
-    const newSocket = io("http://localhost:5000");
+    const newSocket = io(`${process.env.NEXT_PUBLIC_BACKEND}`, {
+      withCredentials: true,
+    });
     setSocket(newSocket);
 
     // Listen for real-time image events
     newSocket.on("process-status", (data) => {
-      console.log("New image received:", data);
-      setImages((prevImages) => [...prevImages, data.path]);
+      console.log("Received data:", data); // Inspect the structure
+      if (data && Array.isArray(data.path)) {
+        setImages((prevImages) => [...prevImages, ...data.path]);
+      } else {
+        console.error("Unexpected data format:", data);
+      }
     });
 
     // Cleanup on component unmount
@@ -32,7 +38,7 @@ export default function RealTimeImages() {
         {images.map((image, index) => (
           <img
             key={index}
-            src={`${process.env.NEXT_PUBLIC_BACKEND}/${image}`}
+            src={`${image}`}
             alt={`Uploaded ${index}`}
             width="200"
           />

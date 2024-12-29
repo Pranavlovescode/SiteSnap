@@ -17,8 +17,8 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-router.post("/", upload.single("image"), async (req, res) => {
-  console.log("Multer file details", req.file);
+router.post("/", upload.array("image", 10), async (req, res) => {
+  console.log("Multer file details", req.files);
   // Code for cloudinary upload
 
   cloudinary.config({
@@ -27,24 +27,35 @@ router.post("/", upload.single("image"), async (req, res) => {
     api_secret: process.env.CLOUDINARY_API_SECRET,
   });
 
-  const uploadResult = await cloudinary.uploader
-    .upload(req.file.path, {
-      public_id: `${req.file.filename}`,
-    })
-    .catch((error) => {
+  const uploadResults=[];
+
+  for (const files of req.files) {
+    const uploadResult = await cloudinary.uploader.upload(files.path, {
+      public_id: files.filename,
+    }).catch((error) => {
       console.log(error);
     });
+    uploadResults.push(uploadResult)
+  }
 
-  console.log("Cloudinary upload", uploadResult);
+  // const uploadResult = await cloudinary.uploader
+  //   .upload(req.files["image"], {
+  //     public_id: `${req.files["image"]}`,
+  //   })
+  //   .catch((error) => {
+  //     console.log(error);
+  //   });
+
+  console.log("Cloudinary upload", uploadResults);
 
   // Add the user id to the photoData table as a relation
   // await prisma.photoData.create({
   //   data:{
-  //     message:uploadResult.secure_url,      
+  //     message:uploadResult.secure_url,
   //   }
   // })
 
-  res.send({ multer: req.file, cloudinary: uploadResult });
+  res.send({ multer: req.files, cloudinary: uploadResults });
 });
 
 export default router;
