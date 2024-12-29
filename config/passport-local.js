@@ -28,7 +28,7 @@ export const initializePassport = (passport) => {
 
         if (userFound) {
           const jwtToken = await jwt.sign(
-            { email: user.email, name: user.name },
+            { email: user.email, name: user.name , id: userFound.id},
             process.env.JWT_SECRET,
             { expiresIn: "1d" }
           );

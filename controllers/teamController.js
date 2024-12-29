@@ -10,26 +10,26 @@ export const teamController = async (req, res) => {
     console.log("Request body: ", body);
     console.log("Request Query params: ", adm_id);
 
-    if (!body || !body.members || !Array.isArray(body.members)) {
+    if (!body) {
       return res.status(400).json({ error: "Invalid data" });
     }
 
     // Validate and fetch members
-    const membersData = await Promise.all(
-      body.members.map(async (email) => {
-        const existingUser = await prisma.user.findUnique({
-          where: { email },
-        });
+    // const membersData = await Promise.all(
+    //   body.members.map(async (email) => {
+    //     const existingUser = await prisma.user.findUnique({
+    //       where: { email },
+    //     });
 
-        if (!existingUser) {
-          throw new Error(`User with email ${email} does not exist.`);
-        }
+    //     if (!existingUser) {
+    //       throw new Error(`User with email ${email} does not exist.`);
+    //     }
 
-        return existingUser; // Return the user object
-      })
-    );
+    //     return existingUser; // Return the user object
+    //   })
+    // );
 
-    console.log("Members data", membersData);
+    // console.log("Members data", membersData);
 
     // Create the team
     const team = await prisma.team.create({
@@ -37,11 +37,11 @@ export const teamController = async (req, res) => {
         name: body.name,
         description: body.description,
         admin: {
-          connect: { id: adm_id },
+          connect: {id:adm_id},
         },
-        members: {
-          connect: membersData.map((member) => ({ id: member.id })),
-        },
+        // members: {
+        //   connect: membersData.map((member) => ({ id: member.id })),
+        // },
       },
     });
 
@@ -63,7 +63,7 @@ export const getTeamByIdController = async (req, res) => {
     const teams = await prisma.team.findFirst({
       where: {
         // It will find the team on the basis of team_id or if the user is a member of the team
-        OR: [{ id: id }, { members: { some: { id: id } } }],
+        OR: [{ id: id }, { members: { some: { id: id } } },{adminId:id}],
       },
       include: {
         admin: true,
