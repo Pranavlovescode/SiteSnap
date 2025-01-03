@@ -1,10 +1,13 @@
 "use client";
 
-import { io } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
 import React, { useEffect, useState } from "react";
+import Image from "next/image";
+
+
 
 export default function RealTimeImages() {
-  const [socket, setSocket] = useState<any>(null);
+  const [socket, setSocket] = useState<Socket | null>(null);
   const [images, setImages] = useState<string[]>([]);
 
   useEffect(() => {
@@ -13,34 +16,40 @@ export default function RealTimeImages() {
       withCredentials: true,
     });
     setSocket(newSocket);
+  }, []);
 
-    // Listen for real-time image events
-    newSocket.on("process-status", (data) => {
-      console.log("Received data:", data); // Inspect the structure
+  // Handle socket events
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleProcessStatus = (data: { path: string[] }) => {
+      console.log("Received data:", data);
       if (data && Array.isArray(data.path)) {
         setImages((prevImages) => [...prevImages, ...data.path]);
       } else {
         console.error("Unexpected data format:", data);
       }
-    });
-
-    // Cleanup on component unmount
-    return () => {
-      newSocket.disconnect();
     };
-  }, []);
 
+    socket.on("process-status", handleProcessStatus);
+
+    // Cleanup event listener
+    return () => {
+      socket.off("process-status", handleProcessStatus);
+    };
+  }, [socket]);
   return (
     <>
       <h1>Real-Time Images</h1>
       <div>
         {images.length === 0 && <p>No images uploaded yet.</p>}
         {images.map((image, index) => (
-          <img
+          <Image
             key={index}
             src={`${image}`}
             alt={`Uploaded ${index}`}
-            width="200"
+            width={200}
+            height={200}
           />
         ))}
       </div>

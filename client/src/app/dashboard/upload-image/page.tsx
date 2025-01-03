@@ -1,13 +1,15 @@
 "use client";
 
-import { io } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 
+
 export default function UploadImage() {
   const [image, setImage] = useState<File[] | null>(null);
-  const [socket, setSocket] = useState<any | null>(null);
+  
+  const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
     // Establish socket connection

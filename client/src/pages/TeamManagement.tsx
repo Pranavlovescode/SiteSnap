@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { QRCodeSVG } from "qrcode.react";
-import { Users, Plus, Share2 } from "lucide-react";
+import { Users, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -34,8 +34,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-// import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label";
+
 import axios from "axios";
 import { verifyCookieFrontend } from "@/config/cookie-verifier";
 import toast from "react-hot-toast";
@@ -59,7 +58,7 @@ type TeamType = {
   name: string;
   description: string;
   adminId: string;
-  admin: {};
+  admin: object;
   members: [];
   createdAt: Date;
 };
@@ -70,8 +69,7 @@ const teamSchema = z.object({
 });
 
 export default function TeamManagement({ cookie }: { cookie: cookie[] }) {
-  const [teams, setTeams] = useState<any[]>([]);
-  const [selectedTeam, setSelectedTeam] = useState<any>(null);
+  const [teams, setTeams] = useState<TeamType[]>([]);
   const [cookieDetails, setCookieDetails] = useState<DecodedToken | null>(null);
 
   const form = useForm<z.infer<typeof teamSchema>>({
@@ -149,13 +147,6 @@ export default function TeamManagement({ cookie }: { cookie: cookie[] }) {
 
   async function onSubmit(values: z.infer<typeof teamSchema>) {
     try {
-      const newTeam = {
-        id: Date.now().toString(),
-        ...values,
-        joinCode: Math.random().toString(36).substring(7),
-      };
-      setTeams([...teams, newTeam]);
-
       const teamResponse = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND}/api/v1/create/team`,
         {
@@ -174,6 +165,7 @@ export default function TeamManagement({ cookie }: { cookie: cookie[] }) {
       );
 
       console.log("Team response", teamResponse.data);
+      setTeams([...teams, teamResponse.data.team]);
       toast.success("Team created successfully");
       form.reset();
     } catch (error) {
@@ -284,16 +276,14 @@ export default function TeamManagement({ cookie }: { cookie: cookie[] }) {
                             <DialogHeader>
                               <DialogTitle>Share link</DialogTitle>
                               <DialogDescription>
-                                Anyone who has this link will be able to join the team.
+                                Anyone who has this link will be able to join
+                                the team.
                               </DialogDescription>
                             </DialogHeader>
                             <div className="flex items-center space-x-2">
                               <div className="bg-white rounded-lg p-3 lg:p-4">
                                 <QRCodeSVG
-                                  value={`${
-                                    
-                                    "https://github.com/Pranavlovescode"
-                                  }/`}
+                                  value={`${"https://github.com/Pranavlovescode"}/`}
                                   size={
                                     typeof window !== "undefined" &&
                                     window.innerWidth < 640

@@ -29,7 +29,6 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import Image from "next/image";
-import { signIn, signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 const loginSchema = z.object({
