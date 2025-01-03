@@ -60,7 +60,7 @@ export const getTeamByIdController = async (req, res) => {
   try {
     const { id } = req.query;
     console.log("Request Query params: ", id);
-    const teams = await prisma.team.findFirst({
+    const teams = await prisma.team.findMany({
       where: {
         // It will find the team on the basis of team_id or if the user is a member of the team
         OR: [{ id: id }, { members: { some: { id: id } } },{adminId:id}],

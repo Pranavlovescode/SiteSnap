@@ -24,9 +24,22 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+// import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label";
 import axios from "axios";
 import { verifyCookieFrontend } from "@/config/cookie-verifier";
 import toast from "react-hot-toast";
+import { QrCode } from "lucide-react";
 
 type cookie = {
   name: string;
@@ -39,6 +52,16 @@ type DecodedToken = {
   email: string;
   exp: number;
   iat: number;
+};
+
+type TeamType = {
+  id: string;
+  name: string;
+  description: string;
+  adminId: string;
+  admin: {};
+  members: [];
+  createdAt: Date;
 };
 
 const teamSchema = z.object({
@@ -81,7 +104,17 @@ export default function TeamManagement({ cookie }: { cookie: cookie[] }) {
       if (response.ok) {
         const data = await response.json();
         console.log("Team retrieved", data);
-        setTeams(data.teams || []);
+        setTeams(
+          data.teams.map((teams: TeamType) => ({
+            id: teams.id,
+            name: teams.name,
+            description: teams.description,
+            createdAt: teams.createdAt,
+            admin: teams.admin,
+            adminId: teams.adminId,
+            members: teams.members,
+          }))
+        );
       } else {
         console.error("Failed to retrieve the details", response.status);
       }
@@ -94,11 +127,11 @@ export default function TeamManagement({ cookie }: { cookie: cookie[] }) {
     const result = verifyCookieFrontend(cookie);
     if (result) {
       setCookieDetails({
-        id:result.id,
-        email:result.email,
-        name:result.name,
-        iat:result.iat,
-        exp:result.exp
+        id: result.id,
+        email: result.email,
+        name: result.name,
+        iat: result.iat,
+        exp: result.exp,
       });
     } else {
       console.error("Invalid cookie details");
@@ -108,6 +141,9 @@ export default function TeamManagement({ cookie }: { cookie: cookie[] }) {
   useEffect(() => {
     if (cookieDetails?.id) {
       fetchTeam();
+    }
+    if (teams) {
+      console.log("teams are", teams);
     }
   }, [cookieDetails]);
 
@@ -223,18 +259,66 @@ export default function TeamManagement({ cookie }: { cookie: cookie[] }) {
             <div className="space-y-3">
               {teams.length ? (
                 teams.map((team) => (
-                  <div
-                    key={team.id}
-                    className="p-3 lg:p-4 rounded-lg bg-white/50 hover:bg-white/60 transition-colors cursor-pointer"
-                    onClick={() => setSelectedTeam(team)}
-                  >
-                    <h3 className="font-semibold text-sm lg:text-base">
-                      {team.name}
-                    </h3>
-                    <p className="text-xs lg:text-sm text-gray-600">
-                      {team.description}
-                    </p>
-                  </div>
+                  <>
+                    <div
+                      key={team.id}
+                      className="p-3 lg:p-4 rounded-lg bg-white/50 hover:bg-white/60 transition-colors
+                      cursor-pointer flex flex-row justify-between items-center"
+                    >
+                      <div className="flex flex-col">
+                        <h3 className="font-semibold text-sm lg:text-base">
+                          {team.name}
+                        </h3>
+                        <p className="text-xs lg:text-sm text-gray-600">
+                          {team.description}
+                        </p>
+                      </div>
+                      <div>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <div className="p-2 hover:bg-slate-50 rounded-sm">
+                              <QrCode className="" />
+                            </div>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-md">
+                            <DialogHeader>
+                              <DialogTitle>Share link</DialogTitle>
+                              <DialogDescription>
+                                Anyone who has this link will be able to join the team.
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="flex items-center space-x-2">
+                              <div className="bg-white rounded-lg p-3 lg:p-4">
+                                <QRCodeSVG
+                                  value={`${
+                                    
+                                    "https://github.com/Pranavlovescode"
+                                  }/`}
+                                  size={
+                                    typeof window !== "undefined" &&
+                                    window.innerWidth < 640
+                                      ? 150
+                                      : 200
+                                  }
+                                />
+                              </div>
+                              <Button type="submit" size="sm" className="px-3">
+                                <span className="sr-only">Copy</span>
+                                {/* <Copy /> */}
+                              </Button>
+                            </div>
+                            <DialogFooter className="sm:justify-start">
+                              <DialogClose asChild>
+                                <Button type="button" variant="secondary">
+                                  Close
+                                </Button>
+                              </DialogClose>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                    </div>
+                  </>
                 ))
               ) : (
                 <div className="text-center text-gray-500 py-6 lg:py-8">
@@ -247,33 +331,9 @@ export default function TeamManagement({ cookie }: { cookie: cookie[] }) {
       </div>
 
       {/* Team Join Code */}
-      {selectedTeam && (
-        <Card className="backdrop-blur-md bg-white/60 border-none">
-          <CardHeader>
-            <CardTitle className="text-xl lg:text-2xl font-bold flex items-center gap-2">
-              <Share2 className="w-5 h-5 lg:w-6 lg:h-6" />
-              Team Join Code
-            </CardTitle>
-            <CardDescription>
-              Share this QR code with team members to join {selectedTeam.name}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex justify-center p-4">
-            <div className="bg-white rounded-lg p-3 lg:p-4">
-              <QRCodeSVG
-                value={`${
-                  process.env.NEXT_PUBLIC_FRONTEND || "http://localhost:3000"
-                }/`}
-                size={
-                  typeof window !== "undefined" && window.innerWidth < 640
-                    ? 150
-                    : 200
-                }
-              />
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* {selectedTeam && (
+        
+      )} */}
     </div>
   );
 }
