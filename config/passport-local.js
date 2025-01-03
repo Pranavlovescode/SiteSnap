@@ -36,8 +36,8 @@ export const initializePassport = (passport) => {
           request.res.cookie("auth_token", jwtToken, {
             httpOnly: true,
             secure: false,
-            sameSite: "strict",
-            domain: "localhost",
+            sameSite: "none",
+            domain: process.env.DOMAIN,
             expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 1 day
             path: "/",
             maxAge: 24 * 60 * 60 * 1000,
@@ -46,8 +46,8 @@ export const initializePassport = (passport) => {
           request.res.cookie("user_data", JSON.stringify(user), {
             httpOnly: false,
             secure: false,
-            sameSite: "strict",
-            domain: "localhost",
+            sameSite: "none",
+            domain: process.env.DOMAIN,
             expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 1 day
           })
 
