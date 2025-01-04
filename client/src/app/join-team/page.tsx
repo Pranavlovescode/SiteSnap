@@ -15,13 +15,9 @@ import {
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-interface JoiningCodeInputProps {
-  onCodeSubmit: (code: string) => void;
-}
 
-export default function JoiningCodeInput({
-  onCodeSubmit,
-}: JoiningCodeInputProps) {
+
+export default function JoiningCodeInput() {
   const [joiningCode, setJoiningCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -37,7 +33,7 @@ export default function JoiningCodeInput({
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // Simulate a successful validation
-      onCodeSubmit(joiningCode);
+      // onCodeSubmit(joiningCode);
     } catch (err) {
       console.log("Error occured",err)
       setError("Invalid joining code. Please try again.");
