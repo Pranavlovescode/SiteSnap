@@ -36,6 +36,7 @@ export const teamController = async (req, res) => {
       data: {
         name: body.name,
         description: body.description,
+        code:body.code,
         admin: {
           connect: {id:adm_id},
         },

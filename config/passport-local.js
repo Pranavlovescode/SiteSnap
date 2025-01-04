@@ -25,7 +25,7 @@ export const initializePassport = (passport) => {
             email: user.email,
           },
         });
-
+        console.log(userFound)
         if (userFound) {
           const jwtToken = await jwt.sign(
             { email: user.email, name: user.name , id: userFound.id},
@@ -36,8 +36,8 @@ export const initializePassport = (passport) => {
           request.res.cookie("auth_token", jwtToken, {
             httpOnly: true,
             secure: false,
-            sameSite: "none",
-            domain: process.env.DOMAIN,
+            sameSite: "lax",
+            domain: process.env.DOMAIN||"localhost",
             expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 1 day
             path: "/",
             maxAge: 24 * 60 * 60 * 1000,
@@ -46,8 +46,8 @@ export const initializePassport = (passport) => {
           request.res.cookie("user_data", JSON.stringify(user), {
             httpOnly: false,
             secure: false,
-            sameSite: "none",
-            domain: process.env.DOMAIN,
+            sameSite: "lax",
+            domain: process.env.DOMAIN || "localhost",
             expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 1 day
           })
 

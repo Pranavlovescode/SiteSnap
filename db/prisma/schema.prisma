@@ -39,4 +39,5 @@ model Team {
   createdAt   DateTime    @default(now())
   members     User[]      @relation("Members") // A team can have many users
   photoData   PhotoData[] // A team can have many PhotoData
+  code        String
 }

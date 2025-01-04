@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { QRCodeSVG } from "qrcode.react";
 import { Users, Plus } from "lucide-react";
-
+import { Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -38,7 +38,9 @@ import {
 import axios from "axios";
 import { verifyCookieFrontend } from "@/config/cookie-verifier";
 import toast from "react-hot-toast";
-import { QrCode } from "lucide-react";
+import { QrCode, Check } from "lucide-react";
+import { generateJoiningCode } from "@/config/joiningCode";
+import copy from "clipboard-copy";
 
 type cookie = {
   name: string;
@@ -61,6 +63,7 @@ type TeamType = {
   admin: object;
   members: [];
   createdAt: Date;
+  code: string;
 };
 
 const teamSchema = z.object({
@@ -71,6 +74,8 @@ const teamSchema = z.object({
 export default function TeamManagement({ cookie }: { cookie: cookie[] }) {
   const [teams, setTeams] = useState<TeamType[]>([]);
   const [cookieDetails, setCookieDetails] = useState<DecodedToken | null>(null);
+  const [joiningCode, setJoiningCode] = useState("");
+  const [isCopied, setIsCopied] = useState<boolean>(false);
 
   const form = useForm<z.infer<typeof teamSchema>>({
     resolver: zodResolver(teamSchema),
@@ -111,6 +116,7 @@ export default function TeamManagement({ cookie }: { cookie: cookie[] }) {
             admin: teams.admin,
             adminId: teams.adminId,
             members: teams.members,
+            code: teams.code,
           }))
         );
       } else {
@@ -147,11 +153,14 @@ export default function TeamManagement({ cookie }: { cookie: cookie[] }) {
 
   async function onSubmit(values: z.infer<typeof teamSchema>) {
     try {
+      const code = generateJoiningCode();
+      setJoiningCode(code);
       const teamResponse = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND}/api/v1/create/team`,
         {
           name: values.name,
           description: values.description,
+          code: joiningCode,
         },
         {
           headers: {
@@ -173,6 +182,26 @@ export default function TeamManagement({ cookie }: { cookie: cookie[] }) {
       toast.error("Failed to create team");
     }
   }
+
+  const joiningTeam = async () => {
+    console.log("This is joining team function");
+  };
+
+  const copyToClipboard = async (code: string) => {
+    try {
+      console.log("Joining code:", code); // Debug log
+      const result = await copy(code);
+      setIsCopied(true);
+      console.log("Copied to clipboard", result);
+      setTimeout(() => {
+        setIsCopied(false);
+      }, 2000);
+    } catch (error) {
+      console.log("Failed to copy to clipboard", error);
+    }
+  };
+
+  console.log("Teams:", teams);
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -251,64 +280,79 @@ export default function TeamManagement({ cookie }: { cookie: cookie[] }) {
             <div className="space-y-3">
               {teams.length ? (
                 teams.map((team) => (
-                  <>
-                    <div
-                      key={team.id}
-                      className="p-3 lg:p-4 rounded-lg bg-white/50 hover:bg-white/60 transition-colors
-                      cursor-pointer flex flex-row justify-between items-center"
-                    >
-                      <div className="flex flex-col">
-                        <h3 className="font-semibold text-sm lg:text-base">
-                          {team.name}
-                        </h3>
-                        <p className="text-xs lg:text-sm text-gray-600">
-                          {team.description}
-                        </p>
-                      </div>
-                      <div>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <div className="p-2 hover:bg-slate-50 rounded-sm">
-                              <QrCode className="" />
-                            </div>
-                          </DialogTrigger>
-                          <DialogContent className="sm:max-w-md">
-                            <DialogHeader>
-                              <DialogTitle>Share link</DialogTitle>
-                              <DialogDescription>
-                                Anyone who has this link will be able to join
-                                the team.
-                              </DialogDescription>
-                            </DialogHeader>
-                            <div className="flex items-center space-x-2">
-                              <div className="bg-white rounded-lg p-3 lg:p-4">
-                                <QRCodeSVG
-                                  value={`${"https://github.com/Pranavlovescode"}/`}
-                                  size={
-                                    typeof window !== "undefined" &&
-                                    window.innerWidth < 640
-                                      ? 150
-                                      : 200
-                                  }
-                                />
-                              </div>
-                              <Button type="submit" size="sm" className="px-3">
-                                <span className="sr-only">Copy</span>
-                                {/* <Copy /> */}
-                              </Button>
-                            </div>
-                            <DialogFooter className="sm:justify-start">
-                              <DialogClose asChild>
-                                <Button type="button" variant="secondary">
-                                  Close
-                                </Button>
-                              </DialogClose>
-                            </DialogFooter>
-                          </DialogContent>
-                        </Dialog>
-                      </div>
+                  <div
+                    key={team.id}
+                    className="p-3 lg:p-4 rounded-lg bg-white/50 hover:bg-white/60 transition-colors
+        cursor-pointer flex flex-row justify-between items-center"
+                  >
+                    <div className="flex flex-col">
+                      <h3 className="font-semibold text-sm lg:text-base">
+                        {team.name}
+                      </h3>
+                      {/* Debugging: Log team.code */}
+                      <p className="text-xs lg:text-sm text-gray-600">
+                        {team.description || "No description available"}{" "}
+                        {/* Fallback for debugging */}
+                      </p>
                     </div>
-                  </>
+                    <div>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <div className="p-2 hover:bg-slate-50 rounded-sm">
+                            <QrCode className="" onClick={joiningTeam} />
+                          </div>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-md">
+                          <DialogHeader>
+                            <DialogTitle>Share link</DialogTitle>
+                            <DialogDescription>
+                              Anyone who has this link will be able to join the
+                              team.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="flex flex-col items-center space-x-2">
+                            <div className="bg-white rounded-lg p-3 lg:p-4">
+                              <QRCodeSVG
+                                value={`${
+                                  process.env.NODE_ENV === "production" ||
+                                  process.env.NEXT_PUBLIC_FRONTEND
+                                }/join-team`}
+                                size={
+                                  typeof window !== "undefined" &&
+                                  window.innerWidth < 640
+                                    ? 150
+                                    : 200
+                                }
+                              />
+                            </div>
+                          </div>
+                          <p>Joining Code</p>
+                          <div className="flex flex-row justify-between">
+                            <code>{team.code || "No code available"}</code>
+                            <Button
+                              onClick={() => {
+                                console.log("Team:", team);
+                                console.log("Team code:", team.code);
+                                copyToClipboard(team.code);
+                              }}
+                              type="submit"
+                              size="sm"
+                              className="px-3"
+                            >
+                              {isCopied ? <Check /> : <Copy />}
+                            </Button>
+                          </div>
+                          <DialogFooter className="sm:justify-start">
+                            <DialogClose asChild>
+                              <Button type="button" variant="secondary">
+                                Close
+                              </Button>
+                            </DialogClose>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  </div>
                 ))
               ) : (
                 <div className="text-center text-gray-500 py-6 lg:py-8">

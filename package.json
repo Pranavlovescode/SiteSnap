@@ -5,12 +5,10 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "prisma generate && nodemon index.js",
-    "start": "prisma generate && node index.js"
+    "dev": "nodemon index.js",
+    "start": "node index.js"
   },
-  "prisma": {
-    "schema": "./db/prisma/schema.prisma"
-  },
+
   "author": "Pranav Titambe",
   "license": "MIT",
   "dependencies": {
