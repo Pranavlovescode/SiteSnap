@@ -39,6 +39,7 @@ export default function JoiningCodeInput({
       // Simulate a successful validation
       onCodeSubmit(joiningCode);
     } catch (err) {
+      console.log("Error occured",err)
       setError("Invalid joining code. Please try again.");
     } finally {
       setIsLoading(false);
