@@ -5,11 +5,11 @@ import { Users, LayoutDashboard, Settings, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
-interface DashboardLayoutProps {
+function Dashboard({
+  children,
+}: Readonly<{
   children: React.ReactNode;
-}
-
-function Dashboard({ children }: DashboardLayoutProps) {
+}>) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const toggleMobileMenu = () => {

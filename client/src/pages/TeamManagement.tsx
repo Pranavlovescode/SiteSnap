@@ -41,6 +41,7 @@ import toast from "react-hot-toast";
 import { QrCode, Check } from "lucide-react";
 import { generateJoiningCode } from "@/config/joiningCode";
 import copy from "clipboard-copy";
+import Link from "next/link";
 
 type cookie = {
   name: string;
@@ -286,14 +287,16 @@ export default function TeamManagement({ cookie }: { cookie: cookie[] }) {
         cursor-pointer flex flex-row justify-between items-center"
                   >
                     <div className="flex flex-col">
-                      <h3 className="font-semibold text-sm lg:text-base">
-                        {team.name}
-                      </h3>
-                      {/* Debugging: Log team.code */}
-                      <p className="text-xs lg:text-sm text-gray-600">
-                        {team.description || "No description available"}{" "}
-                        {/* Fallback for debugging */}
-                      </p>
+                      <Link href={`/dashboard/team/${team.id}`}>
+                        <h3 className="font-semibold text-sm lg:text-base">
+                          {team.name}
+                        </h3>
+                        {/* Debugging: Log team.code */}
+                        <p className="text-xs lg:text-sm text-gray-600">
+                          {team.description || "No description available"}{" "}
+                          {/* Fallback for debugging */}
+                        </p>
+                      </Link>
                     </div>
                     <div>
                       <Dialog>
