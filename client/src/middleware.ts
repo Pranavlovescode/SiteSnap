@@ -10,14 +10,14 @@ export function middleware(req: NextRequest) {
   console.log("Session cookie is ", session_cookie);
   console.log("Executing middleware");
 
-  if (publicPath && (auth_token || session_cookie)) {
+  if (publicPath && (auth_token)) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
-  if (!publicPath && !(auth_token || session_cookie)) {
+  if (!publicPath && !(auth_token)) {
     return NextResponse.redirect(new URL("/", req.url));
   }
 }
 // Routes that need to be protected
 export const config = {
-  matcher: ['/dashboard/:path*'],
+  matcher: ['/dashboard','/dashboard/:path*'],
 };

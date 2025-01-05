@@ -36,9 +36,9 @@ export const teamController = async (req, res) => {
       data: {
         name: body.name,
         description: body.description,
-        code:body.code,
+        code: body.code,
         admin: {
-          connect: {id:adm_id},
+          connect: { id: adm_id },
         },
         // members: {
         //   connect: membersData.map((member) => ({ id: member.id })),
@@ -64,7 +64,7 @@ export const getTeamByIdController = async (req, res) => {
     const teams = await prisma.team.findMany({
       where: {
         // It will find the team on the basis of team_id or if the user is a member of the team
-        OR: [{ id: id }, { members: { some: { id: id } } },{adminId:id}],
+        OR: [{ id: id }, { members: { some: { id: id } } }, { adminId: id }],
       },
       include: {
         admin: true,
@@ -83,7 +83,7 @@ export const getTeamByIdController = async (req, res) => {
 
 export const addNewMemberToExistingTeam = async (req, res) => {
   try {
-    const { team_id } = req.query;
+    const { team_id, code } = req.query;
     const body = req.body;
     console.log("Request Query params: ", team_id);
     console.log("Request body: ", body);
@@ -92,40 +92,54 @@ export const addNewMemberToExistingTeam = async (req, res) => {
       return res.status(400).json({ error: "Invalid data" });
     }
 
-    // Validate and fetch members
-    const membersData = await Promise.all(
-      body.members.map(async (email) => {
-        const existingUser = await prisma.user.findUnique({
-          where: { email },
-        });
-
-        if (!existingUser) {
-          // res.status(400).json({error:"User with email does not exist"})
-          throw new Error(`User with email ${email} does not exist.`);
-        }
-
-        return existingUser; // Return the user object
-      })
-    );
-
-    console.log("Members data", membersData);
-
-    const membersToConnect = membersData.map((member) => ({ id: member.id }));
-
-    const updatedTeam = await prisma.team.update({
+    // Check the code from database
+    const correctCode = await prisma.team.findUnique({
       where: {
         id: team_id,
       },
-      data: {
-        members: {
-          connect: membersToConnect,
-        },
-      },
     });
-    console.log("Updated Team: ", updatedTeam);
-    return res
-      .status(200)
-      .json({ message: "Members added successfully !!", updatedTeam });
+
+    if (correctCode.code !== code) {
+      console.log("Incorrect code")
+      return res
+        .status(400)
+        .json({ error: "Joining code is incorrect. Please enter valid code" });
+    } else {
+      // Validate and fetch members
+      const membersData = await Promise.all(
+        body.members.map(async (email) => {
+          const existingUser = await prisma.user.findUnique({
+            where: { email },
+          });
+
+          if (!existingUser) {
+            // res.status(400).json({error:"User with email does not exist"})
+            throw new Error(`User with email ${email} does not exist.`);
+          }
+
+          return existingUser; // Return the user object
+        })
+      );
+
+      console.log("Members data", membersData);
+
+      const membersToConnect = membersData.map((member) => ({ id: member.id }));
+
+      const updatedTeam = await prisma.team.update({
+        where: {
+          id: team_id,
+        },
+        data: {
+          members: {
+            connect: membersToConnect,
+          },
+        },
+      });
+      console.log("Updated Team: ", updatedTeam);
+      return res
+        .status(200)
+        .json({ message: "Members added successfully !!", updatedTeam });
+    }
   } catch (error) {
     console.log(error);
     if (error.message.startsWith("User with email")) {
@@ -174,31 +188,31 @@ export const deleteTeamController = async (req, res) => {
   try {
     const { team_id } = req.query;
     console.log("Request Query params: ", team_id);
-    
+
     // Find the team and get all the members
     const getTeam = await prisma.team.findUnique({
-      where:{
-        id:team_id,
+      where: {
+        id: team_id,
       },
-      include:{
-        admin:true,
-        members:true
-      }
-    })
+      include: {
+        admin: true,
+        members: true,
+      },
+    });
 
-    const teamMembers = getTeam.members.map((member)=>member.id);
+    const teamMembers = getTeam.members.map((member) => member.id);
 
     // Disconnect all the members from the team
     await prisma.team.update({
-      where:{
-        id:team_id
+      where: {
+        id: team_id,
       },
-      data:{
-        members:{
-          disconnect:teamMembers.map((memberId)=>({id:memberId}))
-        }
-      }
-    })
+      data: {
+        members: {
+          disconnect: teamMembers.map((memberId) => ({ id: memberId })),
+        },
+      },
+    });
 
     // Delete the team
     const deletedTeam = await prisma.team.delete({

@@ -4,7 +4,7 @@ import { addNewMemberToExistingTeam, deleteTeamController, getTeamByIdController
 import verifyToken from "../../../middlewares/verifyToken.js";
 
 router.post("/create/team", verifyToken, teamController);
-router.get("/get/team", getTeamByIdController);
+router.get("/get/team", verifyToken,getTeamByIdController);
 router.put("/update/team/members", verifyToken, addNewMemberToExistingTeam);
 router.delete("/delete/team/members", verifyToken, removeMemberFromTeam);
 router.delete("/delete/team",verifyToken, deleteTeamController)

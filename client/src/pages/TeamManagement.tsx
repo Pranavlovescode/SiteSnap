@@ -316,7 +316,7 @@ export default function TeamManagement({ cookie }: { cookie: cookie[] }) {
                                 value={`${
                                   process.env.NODE_ENV === "production" ||
                                   process.env.NEXT_PUBLIC_FRONTEND
-                                }/join-team`}
+                                }/join-team/${team.id}`}
                                 size={
                                   typeof window !== "undefined" &&
                                   window.innerWidth < 640
