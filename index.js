@@ -56,7 +56,7 @@ app.use(cookieParser());
 
 app.use("/api/v1/", loginRouter);
 app.use("/api/v1/", teamRouter);
-app.use("/api/v1/upload-image",uploadImageRouter)
+app.use("/api/v1/image",uploadImageRouter)
 setUpWebSocket(server);
 
 server.listen(5000, () => {

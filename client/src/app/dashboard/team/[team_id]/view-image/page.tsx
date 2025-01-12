@@ -3,12 +3,15 @@
 import { io, Socket } from "socket.io-client";
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-
+import axios from "axios";
+import { useParams } from "next/navigation";
 
 
 export default function RealTimeImages() {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [images, setImages] = useState<string[]>([]);
+  const params = useParams<{team_id:string}>();
+
 
   useEffect(() => {
     // Establish socket connection
@@ -16,7 +19,24 @@ export default function RealTimeImages() {
       withCredentials: true,
     });
     setSocket(newSocket);
+    fetchUploadedImages();
   }, []);
+
+  const fetchUploadedImages = async ()=>{
+    const image_response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND}/api/v1/image/get-images`,{
+      withCredentials:true,
+      params:{
+        teamId:params?.team_id
+      }
+    })
+    if(image_response.status == 200){
+      console.log("Images fetched",image_response.data.images)
+      setImages(image_response.data.images.map((image:{url:string})=>image.url))
+    }
+    else{
+      console.error("Failed to fetch images")
+    }
+  }
 
   // Handle socket events
   useEffect(() => {
