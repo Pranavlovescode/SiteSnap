@@ -287,7 +287,7 @@ export default function TeamManagement({ cookie }: { cookie: cookie[] }) {
         cursor-pointer flex flex-row justify-between items-center"
                   >
                     <div className="flex flex-col">
-                      <Link href={`/dashboard/team/${team.id}`}>
+                      <Link href={`/dashboard/${team.id}`}>
                         <h3 className="font-semibold text-sm lg:text-base">
                           {team.name}
                         </h3>
@@ -302,7 +302,7 @@ export default function TeamManagement({ cookie }: { cookie: cookie[] }) {
                       <Dialog>
                         <DialogTrigger asChild>
                           <div className="p-2 hover:bg-slate-50 rounded-sm">
-                            <QrCode className="" onClick={joiningTeam} />
+                            <QrCode className="" />
                           </div>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-md">

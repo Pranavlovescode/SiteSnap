@@ -6,12 +6,13 @@ import axios from "axios";
 import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
 import { useParams } from "next/navigation";
+import { Loader2 } from "lucide-react";
 
 export default function UploadImage() {
   const [image, setImage] = useState<File[] | null>(null);
   const [socket, setSocket] = useState<Socket | null>(null);
-  const params = useParams<{team_id:string}>();
-
+  const params = useParams<{ team_id: string }>();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // console.log("Team id is ",params?.team_id)
   useEffect(() => {
@@ -28,6 +29,7 @@ export default function UploadImage() {
   }, []);
 
   const uploadImage = async (): Promise<string | null> => {
+    setIsLoading(true);
     if (!image) {
       console.error("No image selected");
       return null;
@@ -48,19 +50,20 @@ export default function UploadImage() {
             "Content-Type": "multipart/form-data",
           },
           withCredentials: true,
-          params:{
-            teamId:params?.team_id
-          }
+          params: {
+            teamId: params?.team_id,
+          },
         }
       );
       if (response.status == 201) {
+        setIsLoading(false);
         console.log("Image uploaded:", response.data.cloudinary);
-        toast.success(response.data.message)
+        toast.success(response.data.message);
         return response.data.cloudinary; // Return the uploaded image paths
-      }
-      else{
+      } else {
+        setIsLoading(false);
         console.log("Error in uploading image");
-        toast.error(response.data.error)
+        toast.error(response.data.error);
         return "Error in uploading image";
       }
     } catch (error) {
@@ -82,7 +85,11 @@ export default function UploadImage() {
       if (imagePath) {
         // Emit the event to the Socket.IO server
         const paths = Array.isArray(imagePath)
-          ? imagePath.map((image) => image.secure_url)
+          ? imagePath.map((image) => ({
+              secure_url: image.secure_url,
+              asset_folder: image.asset_folder,
+              display_name: image.display_name,
+            }))
           : [imagePath];
         console.log("The paths are ", paths);
         socket.emit("upload-image", paths);
@@ -111,7 +118,16 @@ export default function UploadImage() {
             }
           }}
         />
-        <Button type="submit">Upload</Button>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Uploading...
+            </>
+          ) : (
+            "Upload Image"
+          )}
+        </Button>
       </form>
     </>
   );

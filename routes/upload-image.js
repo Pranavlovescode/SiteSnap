@@ -3,7 +3,7 @@ import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
 import { PrismaClient } from "@prisma/client";
 import fs from "fs";
-import verifyToken from "../../../middlewares/verifyToken.js";
+import verifyToken from "../middlewares/verifyToken.js";
 
 const prisma = new PrismaClient();
 const router = Router();
@@ -35,11 +35,18 @@ router.post("/upload-images", upload.array("image", 10), verifyToken, async (req
 
   const uploadResults = [];
 
+  const team = await prisma.team.findUnique({
+    where:{
+      id:teamId
+    }
+  })
+
   try {
     for (const files of req.files) {
       const uploadResult = await cloudinary.uploader
         .upload(files.path, {
           public_id: files.filename,
+          folder:`${team.name}/${new Date().toISOString().slice(0,10)}`,
         })
         .catch((error) => {
           console.log(error);
@@ -54,6 +61,8 @@ router.post("/upload-images", upload.array("image", 10), verifyToken, async (req
       await prisma.photoData.create({
         data: {
           url: image.secure_url,
+          name:image.display_name,
+          folder:image.asset_folder,
           user: {
             connect: {
               id: userId,

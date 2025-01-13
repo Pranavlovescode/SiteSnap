@@ -1,10 +1,10 @@
 import { Router } from "express";
-import isAuthenticated from "../../../middlewares/verifyToken.js";
-import { loginController } from "../../../controllers/loginController.js";
+import isAuthenticated from "../middlewares/verifyToken.js";
+import { loginController } from "../controllers/loginController.js";
 import {
   signupController,
   signupWithGoogle,
-} from "../../../controllers/signupController.js";
+} from "../controllers/signupController.js";
 import passport from "passport";
 
 const router = Router();

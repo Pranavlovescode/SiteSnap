@@ -2,9 +2,9 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import express from "express";
-import loginRouter from "./routes/api/v1/auth.js";
-import teamRouter from "./routes/api/v1/team.js";
-import uploadImageRouter from "./routes/api/v1/upload-image.js"
+import loginRouter from "./routes/auth.js";
+import teamRouter from "./routes/team.js";
+import uploadImageRouter from "./routes/upload-image.js"
 import cors from "cors";
 import http from "http";
 import cookieParser from "cookie-parser";

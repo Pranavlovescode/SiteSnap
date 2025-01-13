@@ -63,12 +63,12 @@ export const getTeamByIdController = async (req, res) => {
     console.log("Request Query params: ", id);
     const teams = await prisma.team.findMany({
       where: {
-        // It will find the team on the basis of team_id or if the user is a member of the team
-        OR: [{ id: id }, { members: { some: { id: id } } }, { adminId: id }],
+        OR:[{id:id},{adminId:id}]
       },
       include: {
         admin: true,
         members: true,
+        photoData:true
       },
     });
     console.log("Teams: ", teams);
@@ -230,3 +230,27 @@ export const deleteTeamController = async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 };
+
+export const getTeamById = async(req, res)=>{
+  try {
+    const { id } = req.query;
+    console.log("Request Query params: ", id);
+    const teams = await prisma.team.findUnique({
+      where: {
+        id:id
+      },
+      include: {
+        admin: true,
+        members: true,
+        photoData:true
+      },
+    });
+    console.log("Teams: ", teams);
+    return res
+      .status(200)
+      .json({ message: "Teams retrieved successfully !!", teams });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+}
