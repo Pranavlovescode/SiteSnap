@@ -52,7 +52,7 @@ function page() {
 
   return (
     <div className="text-white">
-      {team?.name}
+      <h2 className="font-semibold text-4xl">{team?.name}</h2>
       {team && <FileSystem team={team} />}
     </div>
   );

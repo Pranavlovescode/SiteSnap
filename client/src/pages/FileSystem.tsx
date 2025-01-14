@@ -37,26 +37,33 @@ export default function File({ team }: { team: TeamType }) {
     {}
   );
 
+  console.log("groupedData:", groupedData);
+  console.log("Team", team);
+  // const folder_name = team.photoData.find((folder)=>folder.folder === groupedData.folder)
+  // console.log("folder_name",folder_name)
   return (
     <>
-      <div className="p-3 mt-10" key={team.id}>
+      <div className="p-3 mt-10 grid grid-cols-1 gap-4 md:grid-cols-4" key={team.id}>
         {Object.keys(groupedData).length > 0 ? (
-          Object.entries(groupedData).map(([folder], index) => (
-            <Link
-              href={`/dashboard/${team.id}/${team.name}/${team.photoData.find(
-                (folder) => folder.folder === folder.folder
-              )?.folder.split('/')[1]}/view-image`}
+          Object.entries(groupedData).map(([groupedFolder], index) => (
+            <div
+              key={index}
+              className="my-3"
             >
-              <div
-                key={index}
-                className="grid grid-cols-4 gap-4 md:grid-cols-3"
+              <Link
+                href={`/dashboard/${team.id}/${team.name}/${
+                  groupedFolder.split("/")[1]
+                }/view-image`}
+                
               >
-                <div className="flex flex-col bg-white/30 rounded-lg p-2">
+                <div className="flex flex-col justify-start items-center bg-white/30 rounded-lg p-2">
                   <Folder size={110} className="text-white" />
-                  <h2 className="text-lg font-bold text-white">{folder}</h2>
+                  <h2 className="text-lg font-bold text-white">
+                    {groupedFolder}
+                  </h2>
                 </div>
-              </div>
-            </Link>
+              </Link>
+            </div>
           ))
         ) : (
           <p className="text-white">No folders or images available.</p>
