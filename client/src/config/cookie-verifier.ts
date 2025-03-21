@@ -16,7 +16,7 @@ type DecodedToken ={
 
 export const verifyCookieFrontend = (cookie: cookie[]): DecodedToken | null => {
   const cookieName = cookie.find(
-    (cookie_name: cookie) => cookie_name.name === "auth_token"
+    (cookie_name: cookie) => cookie_name.name === "session_cookie"
   );
 
   console.log("Cookie ", cookieName);

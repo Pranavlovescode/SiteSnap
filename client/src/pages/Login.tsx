@@ -24,12 +24,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-
 import axios from "axios";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -58,31 +58,22 @@ export default function LoginForm() {
     setIsLoading(true);
     // Simulate API call
     try {
-      const loginResponse = await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND}/api/v1/login`,
-        {
-          email: values.email,
-          password: values.password,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          withCredentials: true,
-        }
-      );
-      const data = loginResponse.data;
-      console.log("The login response is: ", data);
-      if (loginResponse.status === 200) {
-        toast.success("You have successfully logged in.");
+      const loginResponse = await signIn('credentials',{
+        email:values.email,
+        password:values.password,
+        redirect:false,
+        callbackUrl: '/dashboard'
+      })
+      if(loginResponse?.error){
+        toast.error(loginResponse.error);
         setIsLoading(false);
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        navigate.push("/protected");
-        values.email = "";
-        values.password = "";
-      } else {
-        toast.error("Invalid credentials. Please try again.");
+        return;
       }
+      toast.success("You have successfully logged in.");
+      setIsLoading(false)
+      navigate.push("/dashboard");
+      values.email = "";
+      values.password = "";
     } catch (error) {
       console.error(error);
       toast.error("An error occurred. Please try again later.");
@@ -92,21 +83,14 @@ export default function LoginForm() {
   const signUpWithGoogle = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Redirecting...");
-
-    // const popup = window.open(
-    //   "http://localhost:5000/api/v1/login/google",
-    //   "_blank",
-    //   "width=500,height=600"
-    // );
-
-    // const popupInterval = setInterval(() => {
-    //   if (!popup || popup.closed) {
-    //     clearInterval(popupInterval);
-    //     console.log("Popup closed by user");
-    //   }
-    // }, 500);
-
-    window.location.href = `${process.env.NEXT_PUBLIC_BACKEND}/api/v1/login/google`;
+    const googleResponse = await signIn("google", {
+      callbackUrl: "/dashboard",
+    });
+    if (googleResponse?.error) {
+      toast.error(googleResponse.error);
+      return;
+    }
+    navigate.push("/dashboard");
   };
 
   return (
@@ -201,8 +185,9 @@ export default function LoginForm() {
               width={23}
               alt="Google logo"
             />{" "}
-            Sign In with Google
+            Continue with Google
           </Button>
+          
         </div>
       </CardFooter>
     </Card>

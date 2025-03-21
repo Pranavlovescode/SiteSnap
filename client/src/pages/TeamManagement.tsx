@@ -36,25 +36,24 @@ import {
 } from "@/components/ui/dialog";
 
 import axios from "axios";
-import { verifyCookieFrontend } from "@/config/cookie-verifier";
 import toast from "react-hot-toast";
 import { QrCode, Check } from "lucide-react";
 import { generateJoiningCode } from "@/config/joiningCode";
 import copy from "clipboard-copy";
 import Link from "next/link";
 
-type cookie = {
-  name: string;
-  value: string;
-};
+// type cookie = {
+//   name: string;
+//   value: string;
+// };
 
-type DecodedToken = {
-  id: string;
-  name: string;
-  email: string;
-  exp: number;
-  iat: number;
-};
+// type DecodedToken = {
+//   id: string;
+//   name: string;
+//   email: string;
+//   exp: number;
+//   iat: number;
+// };
 
 type TeamType = {
   id: string;
@@ -72,9 +71,9 @@ const teamSchema = z.object({
   description: z.string().min(10, "Description must be at least 10 characters"),
 });
 
-export default function TeamManagement({ cookie }: { cookie: cookie[] }) {
+export default function TeamManagement() {
   const [teams, setTeams] = useState<TeamType[]>([]);
-  const [cookieDetails, setCookieDetails] = useState<DecodedToken | null>(null);
+  const [cookieDetails, setCookieDetails] = useState(null);
   const [joiningCode, setJoiningCode] = useState("");
   const [isCopied, setIsCopied] = useState<boolean>(false);
 
@@ -87,70 +86,70 @@ export default function TeamManagement({ cookie }: { cookie: cookie[] }) {
   });
 
   // Fetching teams from database
-  const fetchTeam = async () => {
-    if (!cookieDetails?.id) {
-      console.error("Missing cookie details for fetchTeam");
-      return;
-    }
+  // const fetchTeam = async () => {
+  //   // if (!cookieDetails?.id) {
+  //   //   console.error("Missing cookie details for fetchTeam");
+  //   //   return;
+  //   // }
 
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND}/api/v1/get/team?id=${cookieDetails.id}`,
-        {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+  //   try {
+  //     const response = await fetch(
+  //       `${process.env.NEXT_PUBLIC_BACKEND}/api/v1/get/team?id=${cookieDetails.id}`,
+  //       {
+  //         method: "GET",
+  //         credentials: "include",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //       }
+  //     );
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Team retrieved", data);
-        setTeams(
-          data.teams.map((teams: TeamType) => ({
-            id: teams.id,
-            name: teams.name,
-            description: teams.description,
-            createdAt: teams.createdAt,
-            admin: teams.admin,
-            adminId: teams.adminId,
-            members: teams.members,
-            code: teams.code,
-          }))
-        );
-      } else {
-        console.error("Failed to retrieve the details", response.status);
-      }
-    } catch (error) {
-      console.error("Error during team fetch", error);
-    }
-  };
+  //     if (response.ok) {
+  //       const data = await response.json();
+  //       console.log("Team retrieved", data);
+  //       setTeams(
+  //         data.teams.map((teams: TeamType) => ({
+  //           id: teams.id,
+  //           name: teams.name,
+  //           description: teams.description,
+  //           createdAt: teams.createdAt,
+  //           admin: teams.admin,
+  //           adminId: teams.adminId,
+  //           members: teams.members,
+  //           code: teams.code,
+  //         }))
+  //       );
+  //     } else {
+  //       console.error("Failed to retrieve the details", response.status);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error during team fetch", error);
+  //   }
+  // };
 
-  useEffect(() => {
-    const result = verifyCookieFrontend(cookie);
-    if (result) {
-      setCookieDetails({
-        id: result.id,
-        email: result.email,
-        name: result.name,
-        iat: result.iat,
-        exp: result.exp,
-      });
-    } else {
-      console.error("Invalid cookie details");
-    }
-  }, [cookie]);
+  // useEffect(() => {
 
-  useEffect(() => {
-    if (cookieDetails?.id) {
-      fetchTeam();
-    }
-    if (teams) {
-      console.log("teams are", teams);
-    }
-  }, [cookieDetails]);
+  //   if (result) {
+  //     setCookieDetails({
+  //       id: result.id,
+  //       email: result.email,
+  //       name: result.name,
+  //       iat: result.iat,
+  //       exp: result.exp,
+  //     });
+  //   } else {
+  //     console.error("Invalid cookie details");
+  //   }
+  // }, [cookie]);
+
+  // useEffect(() => {
+  //   if (cookieDetails?.id) {
+  //     fetchTeam();
+  //   }
+  //   if (teams) {
+  //     console.log("teams are", teams);
+  //   }
+  // }, [cookieDetails]);
 
   async function onSubmit(values: z.infer<typeof teamSchema>) {
     try {
@@ -169,7 +168,7 @@ export default function TeamManagement({ cookie }: { cookie: cookie[] }) {
           },
           withCredentials: true,
           params: {
-            adm_id: cookieDetails?.id,
+            // adm_id: cookieDetails?.id,
           },
         }
       );
