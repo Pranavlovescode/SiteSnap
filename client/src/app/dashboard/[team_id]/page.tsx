@@ -30,17 +30,17 @@ function page() {
 
   const fetchTeams = async () => {
     const team_response = await axios.get(
-      `${process.env.NEXT_PUBLIC_BACKEND}/api/v1/team`,
+      `/api/team/get`,
       {
         withCredentials: true,
         params: {
-          id: params?.team_id,
+          team_id: params?.team_id,
         },
       }
     );
     if (team_response.status == 200) {
-      console.log("Team fetched", team_response.data.teams);
-      setTeam(team_response.data.teams);
+      console.log("Team fetched", team_response.data);
+      setTeam(team_response.data);
     } else {
       console.error("Failed to fetch team");
     }

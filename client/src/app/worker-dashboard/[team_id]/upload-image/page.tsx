@@ -17,11 +17,15 @@ export default function UploadImage() {
   // console.log("Team id is ",params?.team_id)
   useEffect(() => {
     // Establish socket connection
-    const newSocket = io(`${process.env.NEXT_PUBLIC_BACKEND}`, {
+    const newSocket = io(`${process.env.NEXT_PUBLIC_BACKEND}`||"http://localhost:5001", {
       withCredentials: true,
     });
     setSocket(newSocket);
 
+    // Listen for events
+    socket?.on("connection", () => {
+      console.log("Socket connected");
+    });
     // Cleanup on component unmount
     return () => {
       newSocket.disconnect();
@@ -43,7 +47,7 @@ export default function UploadImage() {
       console.log("Image data", formData);
       console.log("Uploading image...");
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND}/api/v1/image/upload-images`,
+        "/api/image-data/upload-image",
         formData,
         {
           headers: {

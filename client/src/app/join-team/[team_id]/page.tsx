@@ -36,7 +36,7 @@ export default function JoiningCodeInput() {
     try {
 
       const joiningCodeResponse = await axios.put(
-        `${process.env.NEXT_PUBLIC_BACKEND}/api/v1/update/team/members`,
+        "/api/team/update",
         {
           members: [email],
         },

@@ -1,11 +1,13 @@
 import { Server } from "socket.io";
 import { parse } from "cookie";
-import { PrismaClient } from "@prisma/client";
+
 import express from "express";
 import http from "http";
 import { getSession } from "./sessionHelper.js"; // Helper to get NextAuth session
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
+
 const app = express();
 const server = http.createServer(app);
 

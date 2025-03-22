@@ -1,10 +1,9 @@
 
-import { PrismaClient } from "@prisma/client";
-import { NextResponse,NextRequest } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
+import { prisma } from "@/lib/prisma";
 
-const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -26,13 +25,27 @@ export async function POST(req: NextRequest) {
     );
   }
   const url = new URL(req.url);
-  const adm_id = url.searchParams.get('adm_id');
+  const adm_id = url.searchParams.get("adm_id");
   const { name, description, code } = await req.json();
   const existingTeam = await prisma.team.findFirst({
     where: {
       code: code,
     },
   });
+  const teamAdmin = await prisma.user.findFirst({
+    where: {
+      email: adm_id as string,
+    },
+  });
+  if (!teamAdmin) {
+    return NextResponse.json(
+      {
+        message: "Admin does not exist",
+      },
+      { status: 400 }
+    );
+  }
+
   if (existingTeam) {
     return NextResponse.json(
       {
@@ -47,16 +60,15 @@ export async function POST(req: NextRequest) {
       description,
       code,
       admin: {
-        connect:{
-          id:adm_id as string
-        }
+        connect: {
+          id: teamAdmin.id as string,
+        },
       },
     },
   });
 
   return NextResponse.json(team, { status: 201 });
 }
-
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);

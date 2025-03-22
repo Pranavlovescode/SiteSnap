@@ -44,7 +44,7 @@ export default function RealTimeImages() {
   const fetchUploadedImages = async () => {
     try {
       const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_BACKEND}/api/v1/image/get-images`,
+        "/api/image-data/get",
         {
           withCredentials: true,
           params: { teamId: params?.team_id },
@@ -52,7 +52,7 @@ export default function RealTimeImages() {
       );
 
       if (response.status === 200) {
-        console.log("Images fetched", response.data.images);
+        console.log("Images fetched", response.data);
         setImages(
           response.data.images.map(
             (image: { url: string; folder: string; name: string }) => ({
@@ -130,8 +130,8 @@ export default function RealTimeImages() {
             <Dialog>
               <DialogTrigger asChild>
                 <div
-                  onClick={() => console.log("Image clicked", image)}
                   key={index}
+                  onClick={() => console.log("Image clicked", image)}
                   className="bg-gray-800 p-2 rounded-md shadow-lg flex flex-col items-center justify-center hover:cursor-pointer"
                 >
                   <Image

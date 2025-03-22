@@ -67,6 +67,15 @@ type TeamType = {
   code: string;
 };
 
+// type Session = {
+//   user: {
+//     id: string;
+//     name: string;
+//     email: string;
+//   };
+
+// }
+
 const teamSchema = z.object({
   name: z.string().min(3, "Team name must be at least 3 characters"),
   description: z.string().min(10, "Description must be at least 10 characters"),
@@ -74,7 +83,7 @@ const teamSchema = z.object({
 
 export default function TeamManagement() {
   const [teams, setTeams] = useState<TeamType[]>([]);
-  const [cookieDetails, setCookieDetails] = useState(null);
+  // const [cookieDetails, setCookieDetails] = useState(null);
   const [joiningCode, setJoiningCode] = useState("");
   const [isCopied, setIsCopied] = useState<boolean>(false);
 
@@ -86,7 +95,7 @@ export default function TeamManagement() {
     },
   });
 
-  const { data: session } = useSession();
+  const { data: session }= useSession();
 
   // Fetching teams from database
   const fetchTeam = async () => {
@@ -182,7 +191,7 @@ export default function TeamManagement() {
           },
           withCredentials: true,
           params: {
-            adm_id: session?.user.id,
+            adm_id: session?.user?.email,
           },
         }
       );
@@ -331,7 +340,7 @@ export default function TeamManagement() {
                               <QRCodeSVG
                                 value={`${
                                   process.env.NODE_ENV === "production" ||
-                                  process.env.NEXT_PUBLIC_FRONTEND
+                                  process.env.NEXTAUTH_URL || "http://localhost:3000"
                                 }/join-team/${team.id}`}
                                 size={
                                   typeof window !== "undefined" &&
