@@ -1,0 +1,102 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String          @id @default(uuid()) @db.Uuid
+  name          String
+  email         String          @unique
+  image         String?
+  password      String?
+  emailVerified DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime?       @updatedAt
+  sessions      Session[] // Add this relation
+  teamId        String?         @db.Uuid
+  team          Team?           @relation("Members", fields: [teamId], references: [id], onDelete: NoAction, onUpdate: NoAction) // Users are linked to a team
+  photoData     PhotoData[] // A user can have many PhotoData
+  teamAdmin     Team[]          @relation("TeamAdmin")
+  accounts      Account[]
+  // Authenticator Authenticator[]
+}
+
+model Account {
+  userId            String  @db.Uuid
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model PhotoData {
+  id        String   @id @default(uuid()) @db.Uuid
+  url       String
+  name      String
+  folder    String
+  createdAt DateTime @default(now())
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade) // Each PhotoData belongs to a User
+  teamId    String   @db.Uuid
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade) // PhotoData linked to a Team
+}
+
+model Team {
+  id          String      @id @default(uuid()) @db.Uuid
+  name        String
+  adminId     String      @db.Uuid
+  admin       User        @relation("TeamAdmin", fields: [adminId], references: [id], onDelete: Cascade) // Admin as a User reference
+  description String
+  createdAt   DateTime    @default(now())
+  members     User[]      @relation("Members") // A team can have many users
+  photoData   PhotoData[] // A team can have many PhotoData
+  code        String
+}
+
+model Session {
+  id           String   @id @default(uuid()) @db.Uuid
+  sessionToken String   @unique
+  userId       String   @db.Uuid
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Optional for WebAuthn support
+// model Authenticator {
+//   credentialID         String  @unique
+//   userId               String  @db.Uuid
+//   providerAccountId    String
+//   credentialPublicKey  String
+//   counter              Int
+//   credentialDeviceType String
+//   credentialBackedUp   Boolean
+//   transports           String?
+
+//   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+//   @@id([userId, credentialID])
+// }

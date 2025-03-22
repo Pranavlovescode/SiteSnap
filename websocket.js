@@ -1,87 +1,95 @@
 import { Server } from "socket.io";
-import cookie from "cookie";
-import jwt from "jsonwebtoken";
+import { parse } from "cookie";
 import { PrismaClient } from "@prisma/client";
-import fs from "fs";
-import path from "path";
+import express from "express";
+import http from "http";
+import { getSession } from "./sessionHelper.js"; // Helper to get NextAuth session
+
 const prisma = new PrismaClient();
+const app = express();
+const server = http.createServer(app);
 
-export default async function setUpWebSocket(server) {
-  const io = new Server(server, {
-    cors: {
-      origin: `${process.env.FRONTEND_URL}`,
-      methods: ["GET", "POST"],
-      credentials: true,
-    },
-  });
+const io = new Server(server, {
+  cors: {
+    origin: process.env.NEXTAUTH_URL,
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
 
-  // const imagePath = "./chainlist.jpg";
-  // fs.readFile(imagePath, (err, data) => {
-  //   if (err) throw err;
-  //   const base64 = data.toString("base64");
-  //   console.log(base64);
-  // });
-
-  io.use((socket, next) => {
+io.use(async (socket, next) => {
+  try {
     console.log("Headers:", socket.handshake.headers);
+
+    // Extract session token from cookies
     const cookies = socket.handshake.headers.cookie;
-    console.log("Cookies:", cookies);
-    if (!cookies || cookies === undefined) {
-      return next(new Error("Unauthorized: No cookies provided"));
+    if (!cookies) {
+      console.log("No cookies found");
+      return next(new Error("Unauthorized: No session token found"));
     }
 
-    const parsedCookies = cookie.parse(cookies);
-    const authCookie = parsedCookies.auth_token;
+    const parsedCookies = parse(cookies);
+    const sessionToken =
+      parsedCookies["next-auth.session-token"] || parsedCookies["__Secure-next-auth.session-token"];
 
-    console.log("Parsed Cookie :", authCookie);
-    if (!authCookie || authCookie === "null") {
-      return next(new Error("Unauthorized: No token provided"));
-    } else {
-      jwt.verify(authCookie, process.env.JWT_SECRET, (err, decoded) => {
-        if (err) {
-          return next(new Error("Unauthorized: Invalid token"));
-        }
-        socket.user = decoded;
-        console.log(decoded);
-        next();
-      });
+    console.log("Parsed Session Token:", sessionToken);
+    if (!sessionToken) {
+      return next(new Error("Unauthorized: No session provided"));
     }
+
+    // Retrieve session
+    const session = await getSession(sessionToken);
+    console.log("Session Data:", session);
+
+    if (!session || !session.user) {
+      return next(new Error("Unauthorized: Invalid session"));
+    }
+
+    // Check if user exists in DB
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+    });
+
+    if (!user) {
+      return next(new Error("Unauthorized: User does not exist"));
+    }
+
+    socket.user = user;
+    console.log("Authenticated User:", user.email);
+
+    next();
+  } catch (error) {
+    console.error("WebSocket Auth Error:", error);
+    return next(new Error("Internal Server Error"));
+  }
+});
+
+io.on("connection", (socket) => {
+  console.log(`✅ User Connected: ${socket.user.email} (ID: ${socket.id})`);
+
+  socket.on("message", async (msg) => {
+    io.emit("message-server", msg);
+    console.log(`💬 Message from ${socket.user.email}: ${msg}`);
   });
 
-  io.on("connection", (socket) => {
-    console.log("User is connected with id :", socket.id);
-
-    // socket.emit("message", "Welcome to the chat!");
-
-    // Handle events
-    socket.on("message", async (msg) => {
-      // Saving message to database -> working
-      // await prisma.photoData.create({
-      //   data: {
-      //     message: msg,
-      //     userId: socket.user.id,
-      //   },
-      // });
-      io.emit("message-server", msg);
-      console.log(`Message from ${socket.user.email}: ${msg}`);
-    });
-
-    socket.on("team-message", (id) => {
-      console.log("Connected to team-message", id);
-    });
-
-    socket.on("upload-image", async (data) => {
-      console.log("Image received", data);
-
-      io.emit("process-status", {
-        success: true,
-        message: "Image processed successfully!",
-        path: data,
-      });
-    });
-
-    // socket.on("disconnect", () => {
-    //   console.log(`User disconnected: ${socket.user.email}`);
-    // });
+  socket.on("disconnect", () => {
+    console.log(`❌ User Disconnected: ${socket.user.email}`);
   });
-}
+  socket.on("team-message", (id) => {
+    console.log(`📢 Team Message Received from ${socket.user.email}:`, id);
+  });
+
+  socket.on("upload-image", async (data) => {
+    console.log(`📸 Image Received from ${socket.user.email}`);
+    io.emit("process-status", {
+      success: true,
+      message: "Image processed successfully!",
+      path: data,
+    });
+  });
+});
+
+const PORT = process.env.WEBSOCKET_PORT || 5001;
+server.listen(PORT, () => {
+  console.log(`🚀 WebSocket Server running on port ${PORT}`);
+});

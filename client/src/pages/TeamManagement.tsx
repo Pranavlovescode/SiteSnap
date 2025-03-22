@@ -41,6 +41,7 @@ import { QrCode, Check } from "lucide-react";
 import { generateJoiningCode } from "@/config/joiningCode";
 import copy from "clipboard-copy";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 // type cookie = {
 //   name: string;
@@ -85,48 +86,60 @@ export default function TeamManagement() {
     },
   });
 
+  const { data: session } = useSession();
+
   // Fetching teams from database
-  // const fetchTeam = async () => {
-  //   // if (!cookieDetails?.id) {
-  //   //   console.error("Missing cookie details for fetchTeam");
-  //   //   return;
-  //   // }
-
-  //   try {
-  //     const response = await fetch(
-  //       `${process.env.NEXT_PUBLIC_BACKEND}/api/v1/get/team?id=${cookieDetails.id}`,
-  //       {
-  //         method: "GET",
-  //         credentials: "include",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //         },
-  //       }
-  //     );
-
-  //     if (response.ok) {
-  //       const data = await response.json();
-  //       console.log("Team retrieved", data);
-  //       setTeams(
-  //         data.teams.map((teams: TeamType) => ({
-  //           id: teams.id,
-  //           name: teams.name,
-  //           description: teams.description,
-  //           createdAt: teams.createdAt,
-  //           admin: teams.admin,
-  //           adminId: teams.adminId,
-  //           members: teams.members,
-  //           code: teams.code,
-  //         }))
-  //       );
-  //     } else {
-  //       console.error("Failed to retrieve the details", response.status);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error during team fetch", error);
-  //   }
-  // };
-
+  const fetchTeam = async () => {
+    try {
+      const response = await fetch("/api/team/create", {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+  
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Team retrieved", data);
+        
+        // Check the structure of the data
+        if (Array.isArray(data)) {
+          // If the API returns an array directly
+          setTeams(data.map((team: TeamType) => ({
+            id: team.id,
+            name: team.name,
+            description: team.description,
+            createdAt: team.createdAt,
+            admin: team.admin,
+            adminId: team.adminId,
+            members: team.members,
+            code: team.code,
+          })));
+        } else if (data.teams && Array.isArray(data.teams)) {
+          // If the API returns {teams: [...]}
+          setTeams(data.teams.map((team: TeamType) => ({
+            id: team.id,
+            name: team.name,
+            description: team.description,
+            createdAt: team.createdAt,
+            admin: team.admin,
+            adminId: team.adminId,
+            members: team.members,
+            code: team.code,
+          })));
+        } else {
+          // If the API returns a single team or unknown structure
+          console.log("Unexpected data structure:", data);
+          setTeams(Array.isArray(data) ? data : data.teams ? data.teams : []);
+        }
+      } else {
+        console.error("Failed to retrieve the details", response.status);
+      }
+    } catch (error) {
+      console.error("Error during team fetch", error);
+    }
+  };
   // useEffect(() => {
 
   //   if (result) {
@@ -142,25 +155,26 @@ export default function TeamManagement() {
   //   }
   // }, [cookie]);
 
-  // useEffect(() => {
-  //   if (cookieDetails?.id) {
-  //     fetchTeam();
-  //   }
-  //   if (teams) {
-  //     console.log("teams are", teams);
-  //   }
-  // }, [cookieDetails]);
+  useEffect(() => {
+    fetchTeam();
 
+    if (teams) {
+      console.log("teams are", teams);
+    }
+  },[]);
+
+  console.log("joining code", joiningCode);
   async function onSubmit(values: z.infer<typeof teamSchema>) {
     try {
       const code = generateJoiningCode();
+      console.log("Joining code:", code);
       setJoiningCode(code);
       const teamResponse = await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND}/api/v1/create/team`,
+        "/api/team/create",
         {
           name: values.name,
           description: values.description,
-          code: joiningCode,
+          code: code,
         },
         {
           headers: {
@@ -168,13 +182,13 @@ export default function TeamManagement() {
           },
           withCredentials: true,
           params: {
-            // adm_id: cookieDetails?.id,
+            adm_id: session?.user.id,
           },
         }
       );
 
       console.log("Team response", teamResponse.data);
-      setTeams([...teams, teamResponse.data.team]);
+      setTeams([...teams, teamResponse.data]);
       toast.success("Team created successfully");
       form.reset();
     } catch (error) {

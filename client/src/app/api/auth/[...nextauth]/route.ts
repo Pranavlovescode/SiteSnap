@@ -4,9 +4,15 @@ import { NextAuthOptions } from "next-auth";
 import { compare } from "bcryptjs";
 import NextAuth, { getServerSession } from "next-auth/next";
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import GoogleProvider from "next-auth/providers/google";
-import { redirect} from "next/navigation";
 
+// Extend the Profile type to include email_verified
+declare module "next-auth" {
+  interface Profile {
+    email_verified?: boolean;
+  }
+}
+import GoogleProvider from "next-auth/providers/google";
+import { redirect } from "next/navigation";
 
 const prisma = new PrismaClient();
 
@@ -58,11 +64,7 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const passwordMatch = await compare(
-          credentials.password,
-          user.password
-        );
-
+        const passwordMatch = await compare(credentials.password, user.password);
         if (!passwordMatch) {
           return null;
         }
@@ -77,8 +79,8 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   session: {
-    strategy: "jwt", // Using JWT for compatibility with CredentialsProvider
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60,
   },
   callbacks: {
     async jwt({ token, user, account }) {
@@ -92,12 +94,11 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
-        
-        // Verify this user still exists and is valid
+
         const userExists = await prisma.user.findUnique({
           where: { id: session.user.id },
         });
-        
+
         if (!userExists) {
           throw new Error("User not found");
         }
@@ -107,26 +108,48 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account, profile }) {
       if (account?.provider === "google") {
         try {
-          // Check if user already exists
+          if (!profile?.email_verified) {
+            console.log("Google email not verified");
+            return false; // Block sign-in if email is not verified
+          }
+
           const existingUser = await prisma.user.findUnique({
             where: { email: user.email as string },
           });
 
-          // If user doesn't exist, create a new one
           if (!existingUser) {
             await prisma.user.create({
               data: {
                 email: user.email as string,
                 name: user.name as string,
                 image: user.image as string,
-                // You might want to add emailVerified for Google users
                 emailVerified: new Date(),
               },
             });
+          } else {
+            // If user exists but has no Google provider linked, link it
+            const accountExists = await prisma.account.findFirst({
+              where: {
+                userId: existingUser.id,
+                provider: "google",
+              },
+            });
+
+            if (!accountExists) {
+              await prisma.account.create({
+                data: {
+                  userId: existingUser.id,
+                  provider: "google",
+                  type: "oauth",
+                  providerAccountId: account?.providerAccountId!,
+                },
+              });
+            }
           }
+
+          return true;
         } catch (error) {
           console.error("Error in Google sign-in:", error);
-          // Continue sign-in process even if there's an error
         }
       }
       return true;
@@ -134,25 +157,14 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: "/",
-    // signOut: '/auth/signout',
-    // error: '/auth/error',
   },
   debug: process.env.NODE_ENV === "development",
 };
 
-export async function loginIsRequiredServer(){
+export async function loginIsRequiredServer() {
   const session = await getServerSession(authOptions);
-  if (!session) return redirect('/')
+  if (!session) return redirect('/');
 }
-
-// export async function loginIsRequiredClient(){
-//   if (typeof window === 'undefined') {
-//     const session = useSession();
-//     const router = useRouter();
-//     if (!session) return router.push('/');
-//   }
-
-// }
 
 const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };

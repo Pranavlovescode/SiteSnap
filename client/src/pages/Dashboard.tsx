@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Users, LayoutDashboard, Settings, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { signOut, useSession } from "next-auth/react";
 
 function Dashboard({
   children,
@@ -11,6 +12,7 @@ function Dashboard({
   children: React.ReactNode;
 }>) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { data: session } = useSession();
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -62,6 +64,16 @@ function Dashboard({
                 Settings
               </NavLink>
             </nav>
+            <div className="mt-auto">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-white hover:bg-white/10"
+                onClick={() => signOut()}
+              >
+                Logout
+              </Button>
+            </div>
           </aside>
         )}
 
@@ -90,6 +102,22 @@ function Dashboard({
               Settings
             </NavLink>
           </nav>
+          <div className="mx-auto absolute bottom-5 w-full p-2">
+            <Button
+              variant="ghost"
+              className="text-white flex justify-center items-center my-3 text-md"
+              onClick={() => signOut()}
+            >
+              <img
+                src={
+                  (session?.user.image as string ) || "https://github.com/shadcn.png"
+                }
+                alt="avatar"
+                className="space-x-3 w-8 h-8 rounded-full"
+              />
+              <span>Logout</span>
+            </Button>
+          </div>
         </aside>
 
         {/* Main Content */}
