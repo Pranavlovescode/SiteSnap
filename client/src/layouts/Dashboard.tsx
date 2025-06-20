@@ -126,7 +126,6 @@ function Dashboard({
     </div>
   );
 }
-
 interface NavLinkProps {
   href: string;
   icon: React.ReactNode;

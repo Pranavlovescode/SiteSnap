@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { v2 as cloudinary } from "cloudinary";
-import { authOptions } from "../../auth/[...nextauth]/route";
 import { writeFile, mkdir, unlink } from "fs/promises";
 import { join } from "path";
 import { prisma } from "@/lib/prisma";
+import { authOptions } from "@/lib/authOptions";
 
 // Configure Cloudinary
 cloudinary.config({

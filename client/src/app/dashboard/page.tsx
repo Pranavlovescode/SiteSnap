@@ -1,6 +1,6 @@
+"use client"
 import React from "react";
-// import DashboardLayout from "@/pages/Dashboard";
-import TeamManagement from "@/pages/TeamManagement";
+import TeamManagement from "@/layouts/TeamManagement";
 
 
 export default async function Dashboard() {

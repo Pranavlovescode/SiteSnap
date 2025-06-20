@@ -7,7 +7,10 @@ import {
   varchar,
   primaryKey,
   foreignKey,
+  type AnyPgTable,
 } from "drizzle-orm/pg-core";
+
+
 
 // Users table with reference to Teams
 export const users = pgTable("users", {
@@ -17,14 +20,14 @@ export const users = pgTable("users", {
   password: text("password"),
   isVerified: boolean("is_verified").default(false),
   createdAt: timestamp("created_at").defaultNow(),
-  teamId: uuid("team_id").references(() => teams.id, { onDelete: "SET NULL" }), // Foreign key reference
+  teamId: uuid("team_id").references(() => teams.id, { onDelete: "set null" }), // Foreign key reference
 });
 
 // Teams table with reference to Admin (who is a User)
 export const teams = pgTable("teams", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
-  adminId: uuid("admin_id").references(() => users.id, { onDelete: "CASCADE" }), // Foreign key to Users
+  adminId: uuid("admin_id").references(() => users.id, { onDelete: "cascade" }), // Foreign key to Users
   description: text("description").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   code: varchar("code", { length: 255 }).notNull(),
@@ -37,14 +40,14 @@ export const photoData = pgTable("photo_data", {
   name: varchar("name", { length: 255 }).notNull(),
   folder: text("folder").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
-  userId: uuid("user_id").references(() => users.id, { onDelete: "CASCADE" }), // Foreign key to Users
-  teamId: uuid("team_id").references(() => teams.id, { onDelete: "CASCADE" }), // Foreign key to Teams
+  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }), // Foreign key to Users
+  teamId: uuid("team_id").references(() => teams.id, { onDelete: "cascade" }), // Foreign key to Teams
 });
 
 // Sessions table with reference to Users
 export const sessions = pgTable("sessions", {
   id: uuid("id").defaultRandom().primaryKey(),
   sessionToken: varchar("session_token", { length: 255 }).notNull().unique(),
-  userId: uuid("user_id").references(() => users.id, { onDelete: "CASCADE" }), // Foreign key to Users
+  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }), // Foreign key to Users
   expires: timestamp("expires").notNull(),
 });

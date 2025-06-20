@@ -1,4 +1,4 @@
-import SignUpForm from "@/pages/Signup";
+import SignUpForm from "@/layouts/Signup";
 import React from "react";
 
 function SignUp() {

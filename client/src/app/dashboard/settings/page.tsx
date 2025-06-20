@@ -1,7 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import TeamSettings from "@/pages/team-settings";
-import ProfileSettings from "@/pages/profile-settings";
+import TeamSettings from "@/layouts/team-settings";
+import ProfileSettings from "@/layouts/profile-settings";
 
 export default function SettingsPage() {
   return (

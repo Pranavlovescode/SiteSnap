@@ -1,14 +1,15 @@
+"use client"
 import React from "react";
-import DashboardLayout from "@/pages/Dashboard";
-import { cookies } from "next/headers";
+import DashboardLayout from "@/layouts/Dashboard";
+// import { cookies } from "next/headers";
 
 export default async function Dashboard({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const cookie = (await cookies()).getAll();
-  console.log("first cookie", cookie);
+  // const cookie = (await cookies()).getAll();
+  // console.log("first cookie", cookie);
   return (
     <>
       <DashboardLayout children={children} />      
