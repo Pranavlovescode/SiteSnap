@@ -5,6 +5,20 @@ import express from "express";
 import http from "http";
 import { getSession } from "./sessionHelper.js"; // Helper to get NextAuth session
 import { PrismaClient } from "@prisma/client";
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
+
+// __dirname workaround for ES Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load appropriate env file
+dotenv.config({ 
+  path: process.env.NODE_ENV === "production"
+    ? path.resolve(__dirname, ".env.production")
+    : path.resolve(__dirname, ".env"),
+});
 
 const prisma = new PrismaClient();
 

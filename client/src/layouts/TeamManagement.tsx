@@ -338,10 +338,7 @@ export default function TeamManagement() {
                           <div className="flex flex-col items-center space-x-2">
                             <div className="bg-white rounded-lg p-3 lg:p-4">
                               <QRCodeSVG
-                                value={`${
-                                  process.env.NODE_ENV === "production" ||
-                                  process.env.NEXTAUTH_URL || "http://localhost:3000"
-                                }/join-team/${team.id}`}
+                                value={`${process.env.NEXTAUTH_URL}/join-team/${team.id}`}
                                 size={
                                   typeof window !== "undefined" &&
                                   window.innerWidth < 640

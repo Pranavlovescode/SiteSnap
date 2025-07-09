@@ -48,6 +48,7 @@
     "next": "15.1.2",
     "next-auth": "^4.24.11",
     "pg": "^8.14.1",
+    "prisma": "^6.5.0",
     "qrcode.react": "^4.2.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -57,8 +58,7 @@
     "socket.io-client": "^4.8.1",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
-    "zod": "^3.24.1",
-    "prisma": "^6.5.0"
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -74,5 +74,16 @@
     "prisma": "^6.5.0",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
+  },
+  "pnpm": {
+    "ignoredBuiltDependencies": [
+      "@clerk/shared",
+      "@prisma/client",
+      "@prisma/engines",
+      "client",
+      "esbuild",
+      "prisma",
+      "sharp"
+    ]
   }
 }
