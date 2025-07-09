@@ -17,7 +17,7 @@ export default function UploadImage() {
   // console.log("Team id is ",params?.team_id)
   useEffect(() => {
     // Establish socket connection
-    const newSocket = io(`${process.env.NEXT_PUBLIC_BACKEND}`||"http://localhost:5001", {
+    const newSocket = io(`${process.env.NEXT_PUBLIC_BACKEND}`, {
       withCredentials: true,
     });
     setSocket(newSocket);
