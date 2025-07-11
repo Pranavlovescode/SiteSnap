@@ -1,23 +1,30 @@
-import axios from "axios";
+import jwt from "jsonwebtoken";
 
+/**
+ * Decodes the session token from NextAuth
+ * Assumes NEXTAUTH_SECRET is the same as in your Next.js app
+ * @param {string} sessionToken
+ * @returns {object|null} Decoded session or null if invalid
+ */
 export async function getSession(sessionToken) {
   try {
-    const response = await axios.get(
-      `${process.env.NEXTAUTH_URL}/api/auth/session`,
-      {
-        headers: {
-          Cookie: `next-auth.session-token=${sessionToken}; __Secure-next-auth.session-token=${sessionToken}`,
-        },
-        withCredentials: true,
-      }
-    );
+    const secret = process.env.NEXTAUTH_SECRET;
 
-    return response.data;
+    if (!secret) {
+      throw new Error("NEXTAUTH_SECRET is not defined in environment variables");
+    }
+
+    const decoded = jwt.verify(sessionToken, secret);
+
+    return {
+      user: {
+        id: decoded.id,
+        email: decoded.email,
+        name: decoded.name,
+      },
+    };
   } catch (error) {
-    console.error(
-      "Error fetching session:",
-      error.response?.data || error.message
-    );
+    console.error("Invalid or expired session token:", error.message);
     return null;
   }
 }
