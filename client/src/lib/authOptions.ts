@@ -64,17 +64,21 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60,
   },
-  cookies:{
+  cookies: {
     sessionToken: {
-    name: `__Secure-next-auth.session-token`,
-    options: {
-      httpOnly: true,
-      sameSite: "none", // ← Fix
-      secure: true,
-      path: "/",
+      name:
+        process.env.NODE_ENV === "production"
+          ? "__Secure-next-auth.session-token"
+          : "next-auth.session-token", // ✅ use this in dev
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
     },
   },
-  },
+
   callbacks: {
     async redirect({ url, baseUrl }) {
       // Allows relative callback URLs
