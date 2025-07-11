@@ -14,30 +14,45 @@ export default function UploadImage() {
   const params = useParams<{ team_id: string }>();
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-    const cookies = document.cookie;
-    const sessionToken = cookies
-    .split("; ")
-    .find(row => row.startsWith("__Secure-next-auth.session-token="))
-    ?.split("=")[1];
-
-  // console.log("Team id is ",params?.team_id)
   useEffect(() => {
-    // Establish socket connection
-    const newSocket = io(`${process.env.NEXT_PUBLIC_BACKEND}`, {
-          transports:["websockets"],
+    const connect = async () => {
+      try {
+        const res = await fetch("/api/session-token", {
+          method: "GET",
+          credentials: "include",
+        });
+        const data = await res.json();
+
+        if (!data.token) {
+          console.error("❌ No token returned");
+          return;
+        }
+
+        const newSocket = io(process.env.NEXT_PUBLIC_BACKEND!, {
+          auth: {
+            token: data.token,
+          },
           withCredentials: true,
-          auth:{
-            token:sessionToken
-          }
         });
 
-    // Listen for events
-    socket?.on("connection", () => {
-      console.log("Socket connected");
-    });
-    // Cleanup on component unmount
+        newSocket.on("connect", () => {
+          console.log("✅ WebSocket connected");
+        });
+
+        newSocket.on("connect_error", (err) => {
+          console.error("❌ WebSocket connection failed:", err.message);
+        });
+
+        setSocket(newSocket);
+      } catch (error) {
+        console.error("❌ Error connecting socket:", error);
+      }
+    };
+
+    connect();
+
     return () => {
-      newSocket.disconnect();
+      socket?.disconnect();
     };
   }, []);
 
