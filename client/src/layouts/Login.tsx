@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -28,21 +28,16 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter,useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
-  // .regex(
-  //   /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-  //   "Password must contain at least one uppercase letter, one lowercase letter, and one number"
-  // ),
 });
 
-export default function LoginForm() {
+function LoginFormContent() {
   const [isLoading, setIsLoading] = useState(false);
-
   const navigate = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
@@ -56,44 +51,49 @@ export default function LoginForm() {
   });
 
   async function onSubmit(values: z.infer<typeof loginSchema>) {
-    // e.preventDefault()
     setIsLoading(true);
-    // Simulate API call
     try {
-      const loginResponse = await signIn('credentials',{
-        email:values.email,
-        password:values.password,
-        redirect:true,
+      const loginResponse = await signIn('credentials', {
+        email: values.email,
+        password: values.password,
+        redirect: false,
         callbackUrl: callbackUrl
-      })
-      if(loginResponse?.error){
+      });
+      
+      if (loginResponse?.error) {
         toast.error(loginResponse.error);
         setIsLoading(false);
         return;
       }
+      
       toast.success("You have successfully logged in.");
-      setIsLoading(false)
-      navigate.push("/dashboard");
-      values.email = "";
-      values.password = "";
+      setIsLoading(false);
+      
+      // Use the callback URL for redirect
+      navigate.push(callbackUrl);
+      
+      // Reset form
+      form.reset();
     } catch (error) {
       console.error(error);
       toast.error("An error occurred. Please try again later.");
+      setIsLoading(false);
     }
   }
 
   const signUpWithGoogle = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Redirecting...");
+    
     const googleResponse = await signIn("google", {
       callbackUrl: callbackUrl,
-      redirect:true
+      redirect: true
     });
+    
     if (googleResponse?.error) {
       toast.error(googleResponse.error);
       return;
     }
-    navigate.push("/dashboard");
   };
 
   return (
@@ -190,9 +190,41 @@ export default function LoginForm() {
             />{" "}
             Continue with Google
           </Button>
-          
         </div>
       </CardFooter>
     </Card>
+  );
+}
+
+// Loading fallback component
+function LoginFormSkeleton() {
+  return (
+    <Card className="w-full max-w-md mx-auto backdrop-blur-md bg-white/30 dark:bg-black/30 border-0">
+      <CardHeader className="space-y-2">
+        <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+        <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+          <div className="space-y-2">
+            <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+          <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+export default function LoginForm() {
+  return (
+    <Suspense fallback={<LoginFormSkeleton />}>
+      <LoginFormContent />
+    </Suspense>
   );
 }
