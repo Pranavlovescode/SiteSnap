@@ -14,13 +14,22 @@ export default function UploadImage() {
   const params = useParams<{ team_id: string }>();
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
+    const cookies = document.cookie;
+    const sessionToken = cookies
+    .split("; ")
+    .find(row => row.startsWith("__Secure-next-auth.session-token="))
+    ?.split("=")[1];
+
   // console.log("Team id is ",params?.team_id)
   useEffect(() => {
     // Establish socket connection
     const newSocket = io(`${process.env.NEXT_PUBLIC_BACKEND}`, {
-      withCredentials: true,
-    });
-    setSocket(newSocket);
+          transports:["websockets"],
+          withCredentials: true,
+          auth:{
+            token:sessionToken
+          }
+        });
 
     // Listen for events
     socket?.on("connection", () => {

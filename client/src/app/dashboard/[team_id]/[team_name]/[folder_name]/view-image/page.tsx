@@ -12,6 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { getToken } from "next-auth/jwt";
 
 export default function RealTimeImages() {
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -24,10 +25,21 @@ export default function RealTimeImages() {
     folder_name: string;
   }>();
 
+  const cookies = document.cookie;
+  const sessionToken = cookies
+  .split("; ")
+  .find(row => row.startsWith("__Secure-next-auth.session-token="))
+  ?.split("=")[1];
+
+
   useEffect(() => {
     // Establish socket connection
     const newSocket = io(`${process.env.NEXT_PUBLIC_BACKEND}`, {
+      transports:["websockets"],
       withCredentials: true,
+      auth:{
+        token:sessionToken
+      }
     });
     setSocket(newSocket);
 

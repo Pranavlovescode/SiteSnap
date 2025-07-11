@@ -35,16 +35,16 @@ const io = new Server(server, {
 
 io.use(async (socket, next) => {
   try {
-    console.log("Headers:", socket.handshake.headers);
+    console.log("Headers:", socket.handshake.auth.token);
 
     // Extract session token from cookies
-    const cookies = socket.handshake.headers.cookie;
-    if (!cookies) {
+    const token = socket.handshake.auth.token;
+    if (!token) {
       console.log("No cookies found");
       return next(new Error("Unauthorized: No session token found"));
     }
 
-    const parsedCookies = parse(cookies);
+    const parsedCookies = parse(token);
     const sessionToken =
       parsedCookies["next-auth.session-token"] || parsedCookies["__Secure-next-auth.session-token"];
 
