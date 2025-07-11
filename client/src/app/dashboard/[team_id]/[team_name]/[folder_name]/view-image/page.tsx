@@ -48,8 +48,10 @@ export default function RealTimeImages() {
 
       newSocket.on("connect", () => {
         console.log("✅ WebSocket connected")
-        fetchUploadedImages()
+        
       })
+
+      fetchUploadedImages()
 
       newSocket.on("connect_error", (err) => {
         console.error("❌ WebSocket connection failed:", err.message)
