@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,15 +18,38 @@ import axios from "axios";
 import { useParams } from "next/navigation";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { signIn, useSession } from "next-auth/react";
 
 export default function JoiningCodeInput() {
+  const { data: session, status } = useSession();
   const params = useParams<{ team_id: string }>();
   const [joiningCode, setJoiningCode] = useState("");
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const router = useRouter();
 
+  useEffect(() => {
+    // Auto-fill email if user is authenticated
+    if (status === "authenticated" && session?.user?.email) {
+      setEmail(session.user.email);
+    }
+  }, [status, session]);
+
+  useEffect(() => {
+    // If user is not authenticated, redirect to sign in with callback URL
+    if (status === "unauthenticated") {
+      setIsRedirecting(true);
+      // Use the full URL including protocol and domain
+      const callbackUrl = `${window.location.origin}${window.location.pathname}${window.location.search}`;
+      
+      signIn(undefined, { 
+        callbackUrl: callbackUrl,
+        redirect: true
+      });
+    }
+  }, [status]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +57,6 @@ export default function JoiningCodeInput() {
     setError("");
 
     try {
-
       const joiningCodeResponse = await axios.put(
         "/api/team/update",
         {
@@ -57,10 +79,6 @@ export default function JoiningCodeInput() {
         toast.success("You are added to the team");
         router.push(`/worker-dashboard/${params?.team_id}/upload-image`);        
       }
-      // else if(response==400){
-      //   setError("Invalid joining code. Please try again.");
-      //   toast.error("Invalid code. Please enter a valid code")
-      // }
       else {
         setError("Something went wrong");
         toast.error("Some error occured. Please try again later");
@@ -74,6 +92,36 @@ export default function JoiningCodeInput() {
       setIsLoading(false);
     }
   };
+
+  // Show loading state while checking authentication
+  if (status === "loading") {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-md mx-auto flex justify-center items-center">
+          <Loader2 className="h-8 w-8 animate-spin" />
+          <span className="ml-2">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Show redirecting state when user is unauthenticated
+  if (status === "unauthenticated" || isRedirecting) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-md mx-auto">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+                <p>Redirecting to sign in...</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

@@ -28,7 +28,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter,useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 
 const loginSchema = z.object({
@@ -44,6 +44,8 @@ export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -61,8 +63,8 @@ export default function LoginForm() {
       const loginResponse = await signIn('credentials',{
         email:values.email,
         password:values.password,
-        redirect:false,
-        callbackUrl: '/dashboard'
+        redirect:true,
+        callbackUrl: callbackUrl
       })
       if(loginResponse?.error){
         toast.error(loginResponse.error);
@@ -84,7 +86,8 @@ export default function LoginForm() {
     e.preventDefault();
     console.log("Redirecting...");
     const googleResponse = await signIn("google", {
-      callbackUrl: "/dashboard",
+      callbackUrl: callbackUrl,
+      redirect:true
     });
     if (googleResponse?.error) {
       toast.error(googleResponse.error);

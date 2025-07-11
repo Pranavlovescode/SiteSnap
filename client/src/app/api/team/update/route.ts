@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { authOptions } from "@/lib/authOptions";
+import { error } from "console";
 
 export async function PUT(req: NextRequest) {
 
@@ -40,7 +41,7 @@ export async function PUT(req: NextRequest) {
 
       if (!existingUser) {
         // res.status(400).json({error:"User with email does not exist"})
-        return NextResponse.json({ error: "User with email does not exist" }, { status: 400 });
+        throw error({ error: "User with email does not exist" });
       }
 
       return existingUser; // Return the user object

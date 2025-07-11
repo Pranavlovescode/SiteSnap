@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 
 
