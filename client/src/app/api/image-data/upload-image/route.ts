@@ -6,6 +6,9 @@ import { join } from "path";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/authOptions";
 
+
+export const runtime = "nodejs";
+
 // Configure Cloudinary
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
