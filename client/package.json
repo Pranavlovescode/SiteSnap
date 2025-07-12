@@ -58,6 +58,7 @@
     "react-hot-toast": "^2.4.1",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
+    "streamifier": "^0.1.1",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^3.24.1"
@@ -70,6 +71,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/streamifier": "^0.1.2",
     "drizzle-kit": "^0.30.5",
     "eslint": "^9",
     "eslint-config-next": "15.1.2",
