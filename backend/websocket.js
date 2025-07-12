@@ -128,7 +128,16 @@ io.on("connection", (socket) => {
 
   socket.on("upload-image", async (data) => {
     console.log(`📸 Image Upload Started from ${socket.user.email}`);
-    console.log(`🔄 Processing image...`);
+    console.log("📦 Raw data received from client:", data);
+
+    if (!Array.isArray(data) || data.length === 0) {
+      console.error("❌ No image data received!");
+      return;
+    }
+
+    data.forEach((img, index) => {
+      console.log(`🖼️ Image ${index + 1} path: ${img.secure_url}`);
+    });
 
     io.emit("process-status", {
       success: true,
@@ -137,9 +146,6 @@ io.on("connection", (socket) => {
     });
 
     console.log(`✅ Image processed successfully for ${socket.user.email}`);
-    data.forEach((img, index) => {
-      console.log(`🖼️ Image ${index + 1} path: ${img.secure_url}`);
-    });
   });
 });
 
