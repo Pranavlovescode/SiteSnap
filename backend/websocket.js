@@ -11,10 +11,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Load appropriate env file
-dotenv.config({ 
-  path: process.env.NODE_ENV === "production"
-    ? path.resolve(__dirname, ".env.production")
-    : path.resolve(__dirname, ".env.development"),
+dotenv.config({
+  path:
+    process.env.NODE_ENV === "production"
+      ? path.resolve(__dirname, ".env.production")
+      : path.resolve(__dirname, ".env.development"),
 });
 
 const prisma = new PrismaClient();
@@ -42,7 +43,6 @@ const io = new Server(server, {
 //     }
 
 //     const sessionToken = token;
-
 
 //     console.log("Parsed Session Token:", sessionToken);
 //     if (!sessionToken) {
@@ -111,7 +111,6 @@ io.use(async (socket, next) => {
   }
 });
 
-
 io.on("connection", (socket) => {
   console.log(`✅ User Connected: ${socket.user.email} (ID: ${socket.id})`);
 
@@ -128,11 +127,18 @@ io.on("connection", (socket) => {
   });
 
   socket.on("upload-image", async (data) => {
-    console.log(`📸 Image Received from ${socket.user.email}`);
+    console.log(`📸 Image Upload Started from ${socket.user.email}`);
+    console.log(`🔄 Processing image...`);
+
     io.emit("process-status", {
       success: true,
       message: "Image processed successfully!",
       path: data,
+    });
+
+    console.log(`✅ Image processed successfully for ${socket.user.email}`);
+    data.forEach((img, index) => {
+      console.log(`🖼️ Image ${index + 1} path: ${img.secure_url}`);
     });
   });
 });
