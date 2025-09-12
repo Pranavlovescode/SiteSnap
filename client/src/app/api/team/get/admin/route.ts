@@ -3,11 +3,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { authOptions } from "@/lib/authOptions";
 import { prisma } from "@/lib/prisma";
 
-export async function GET(req: NextRequest) {
-  const url = new URL(req.url);
-  const team_id = url.searchParams.get("team_id");
+export async function GET() {
   const session = await getServerSession(authOptions);
-  
+
   if (!session) {
     return NextResponse.json(
       {
@@ -16,17 +14,9 @@ export async function GET(req: NextRequest) {
       { status: 401 }
     );
   }
-  if (!team_id) {
-    return NextResponse.json(
-      {
-        message: "Invalid team ID",
-      },
-      { status: 400 }
-    );
-  }
-  const team = await prisma.team.findFirst({
+  const team = await prisma.team.findMany({
     where: {
-      id: team_id,
+      adminId: session.user.id,
     },
     include: {
       photoData: true,
@@ -39,13 +29,18 @@ export async function GET(req: NextRequest) {
       },
     },
   });
-  if (!team) {
+
+  const finalTeams = team.map((t) => ({
+    ...t,
+    memberCount: t.members.length,
+  }));
+  if (team.length === 0) {
     return NextResponse.json(
       {
-        message: "Team not found",
+        message: "No teams found",
       },
       { status: 404 }
     );
   }
-  return NextResponse.json(team, { status: 200 });
+  return NextResponse.json(finalTeams, { status: 200 });
 }

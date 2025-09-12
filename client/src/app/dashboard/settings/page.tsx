@@ -1,9 +1,15 @@
+"use client"
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import TeamSettings from "@/layouts/team-settings";
 import ProfileSettings from "@/layouts/profile-settings";
+import { useSearchParams } from "next/navigation";
 
 export default function SettingsPage() {
+  const searchParams = useSearchParams();
+  const teamId = searchParams.get("team_id") || "";
+
   return (
     <div className="container py-10">
       <div className="space-y-0.5">
@@ -20,7 +26,7 @@ export default function SettingsPage() {
           {/* <TabsTrigger value="notifications">Notifications</TabsTrigger> */}
         </TabsList>
         <TabsContent value="team" className="space-y-4">
-          <TeamSettings />
+          <TeamSettings teamId={teamId ?? ""} />
         </TabsContent>
         <TabsContent value="profile" className="space-y-4">
           <ProfileSettings />

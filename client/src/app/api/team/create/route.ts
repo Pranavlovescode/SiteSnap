@@ -85,6 +85,10 @@ export async function GET(req: NextRequest) {
     where: {
       adminId: session.user.id,
     },
+    include:{
+      photoData:true,
+      members:true
+    }
   });
   return NextResponse.json(teams, { status: 200 });
 }

@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -51,8 +51,18 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Trash2, UserPlus } from "lucide-react";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
-// Mock data for team members
+interface Team{
+  id: string; 
+  name: string; 
+  email: string; 
+  role: string; 
+  avatar: string; 
+}
+// Mock data
 const initialMembers = [
   {
     id: 1,
@@ -77,13 +87,36 @@ const initialMembers = [
   },
 ];
 
-export default function TeamSettings() {
-  const [teamName, setTeamName] = useState("SiteSnap Team");
+export default function TeamSettings({ teamId }: { teamId: string }) {
+  const [teamName, setTeamName] = useState("");
   const [members, setMembers] = useState(initialMembers);
   const [newMemberEmail, setNewMemberEmail] = useState("");
   const [newMemberRole, setNewMemberRole] = useState("Viewer");
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
   const [isDeleteTeamOpen, setIsDeleteTeamOpen] = useState(false);
+  const navigate = useRouter();
+
+  // fetch team by team id
+  const fetchTeamById = async()=>{
+    const response = await axios.get('/api/team/get',{
+      headers:{
+        "Content-Type":"application/json"
+      },
+      params:{
+        team_id:teamId
+      },
+      withCredentials:true
+    })
+    console.log(response.data)
+    setTeamName(response.data.name)
+    setMembers(response.data.members.map((t:Team) => ({
+      id: t.id,
+      name: t.name,
+      email: t.email,
+      role: response.data.adminId == t.id ? "Admin" : "Member",
+      avatar: t.avatar || "/placeholder.svg?height=40&width=40",
+    })));
+  }
 
   const handleAddMember = () => {
     if (!newMemberEmail.trim()) return;
@@ -106,18 +139,37 @@ export default function TeamSettings() {
     setMembers(members.filter((member) => member.id !== id));
   };
 
-  const handleDeleteTeam = () => {
-    // In a real app, you would call an API to delete the team
-    setTeamName("");
-    setMembers([]);
-    setIsDeleteTeamOpen(false);
-    // Redirect or show success message
+  const handleDeleteTeam = async() => {
+    try {
+      const response = await axios.delete('/api/team/delete',{
+        headers:{
+          "Content-Type":"application/json"
+        },
+        params:{
+          team_id: teamId
+        },
+        withCredentials: true
+      });
+      
+      setTeamName("");
+      setMembers([]);
+      setIsDeleteTeamOpen(false);
+      toast.success("Team deleted successfully");
+      navigate.push('/dashboard');
+    } catch (error) {
+      console.error("Error deleting team:", error);
+      toast.error("Failed to delete team");
+    }
   };
 
   const handleUpdateTeamName = (e: React.FormEvent) => {
     e.preventDefault();
     // In a real app, you would call an API to update the team name
   };
+
+  useEffect(()=>{
+    fetchTeamById();
+  },[])
 
   return (
     <div className="space-y-6 container ">
@@ -187,8 +239,7 @@ export default function TeamSettings() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Admin">Admin</SelectItem>
-                      <SelectItem value="Editor">Editor</SelectItem>
-                      <SelectItem value="Viewer">Viewer</SelectItem>
+                      <SelectItem value="Editor">Member</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

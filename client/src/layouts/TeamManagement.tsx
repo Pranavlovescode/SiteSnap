@@ -229,7 +229,7 @@ export default function TeamManagement() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
-        {/* Create Team Form */}
+
         <Card className="backdrop-blur-md bg-white/60 border-none">
           <CardHeader>
             <CardTitle className="text-xl lg:text-2xl font-bold flex items-center gap-2">
@@ -288,7 +288,7 @@ export default function TeamManagement() {
           </CardContent>
         </Card>
 
-        {/* Team List */}
+
         <Card className="backdrop-blur-md bg-white/60 border-none">
           <CardHeader>
             <CardTitle className="text-xl lg:text-2xl font-bold flex items-center gap-2">
@@ -385,11 +385,6 @@ export default function TeamManagement() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Team Join Code */}
-      {/* {selectedTeam && (
-        
-      )} */}
     </div>
   );
 }
