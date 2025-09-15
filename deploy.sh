@@ -17,13 +17,9 @@ git pull origin main
 echo "Installing dependencies..."
 cd backend/
 npm i
-cd ../client/
-npm install  # Use --only=production for backend Node.js apps
 
 # 3. Build the application (if you have a build step, e.g., for React, Vue, etc.)
 # The --if-present flag means it will only run if a "build" script is in your package.json
-echo "Building the application..."
-npm run build --if-present
 
 # 4. Restart the application using PM2
 # pm2 reload will achieve a zero-downtime reload.
