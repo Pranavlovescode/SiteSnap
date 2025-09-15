@@ -1,93 +1,177 @@
 "use client";
 
-import type React from "react";
-
 import { useState } from "react";
+import { useSession } from "next-auth/react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
 
 export default function ProfileSettings() {
-  const [profile, setProfile] = useState({
-    name: "Alex Johnson",
-    email: "alex@sitesnap.com",
-    bio: "Product designer at SiteSnap",
-    avatar: "/placeholder.svg?height=100&width=100",
+  const { data: session, update: updateSession } = useSession();
+  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    name: session?.user?.name || "",
+    email: session?.user?.email || "",
+    image: session?.user?.image || "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, you would call an API to update the profile
+    // setIsLoading(true);
+
+    // try {
+    //   const response = await fetch("/api/user/update", {
+    //     method: "PUT",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //     body: JSON.stringify(formData),
+    //   });
+
+    //   if (!response.ok) {
+    //     throw new Error("Failed to update profile");
+    //   }
+
+    //   // Update the session with new user data
+    //   await updateSession({
+    //     ...session,
+    //     user: {
+    //       ...session?.user,
+    //       ...formData,
+    //     },
+    //   });
+
+    //   toast.success("Profile updated successfully");
+    // } catch (error) {
+    //   console.error("Error updating profile:", error);
+    //   toast.error("Failed to update profile");
+    // } finally {
+    //   setIsLoading(false);
+    // }
   };
 
   return (
-    <Card className="space-y-4 container bg-white/60 backdrop-blur-md border-none">
-      <CardHeader>
-        <CardTitle>Profile</CardTitle>
-        <CardDescription>Manage your personal information.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="flex flex-col gap-6 sm:flex-row">
-            <div className="flex flex-col items-center gap-2">
-              <Avatar className="h-24 w-24">
-                <AvatarImage src={profile.avatar} alt={profile.name} />
-                <AvatarFallback>{profile.name.charAt(0)}</AvatarFallback>
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-lg font-medium text-white">Profile</h3>
+        <p className="text-sm text-muted-foreground">
+          Update your personal information and how others see you on the platform.
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit}>
+        <Card className="backdrop-blur-md bg-white/60 border-none">
+          <CardHeader>
+            <CardTitle>Personal Information</CardTitle>
+            <CardDescription>Make changes to your profile here.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center space-x-4 mb-6">
+              <Avatar className="h-20 w-20">
+                <AvatarImage src={formData.image} alt={formData.name} />
+                <AvatarFallback>
+                  {formData.name?.charAt(0) || "U"}
+                </AvatarFallback>
               </Avatar>
-              <Button variant="outline" size="sm">
-                Change Avatar
-              </Button>
+              <div className="flex-1">
+                <Label
+                  htmlFor="image"
+                  className="text-foreground"
+                >
+                  Profile Image URL
+                </Label>
+                <Input
+                  id="image"
+                  name="image"
+                  value={formData.image}
+                  onChange={handleChange}
+                  className="w-full mt-1 bg-input text-foreground"
+                  placeholder="https://example.com/your-image.jpg"
+                />
+              </div>
             </div>
-            <div className="flex-1 space-y-4">
-              <div className="grid gap-2">
-                <Label htmlFor="name">Name</Label>
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label
+                  htmlFor="name"
+                  className="text-foreground"
+                >
+                  Full Name
+                </Label>
                 <Input
                   id="name"
-                  className="bg-white"
-                  value={profile.name}
-                  onChange={(e) =>
-                    setProfile({ ...profile, name: e.target.value })
-                  }
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  className="bg-input text-foreground"
                 />
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
+
+              <div className="space-y-2">
+                <Label
+                  htmlFor="email"
+                  className="text-foreground"
+                >
+                  Email
+                </Label>
                 <Input
                   id="email"
+                  name="email"
                   type="email"
-                  className="bg-white"
-                  value={profile.email}
-                  onChange={(e) =>
-                    setProfile({ ...profile, email: e.target.value })
-                  }
+                  value={formData.email}
+                  onChange={handleChange}
+                  disabled
+                  className="opacity-70 bg-input text-foreground"
                 />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="bio">Bio</Label>
-                <Textarea
-                  id="bio"
-                  className="bg-white"
-                  value={profile.bio}
-                  onChange={(e) =>
-                    setProfile({ ...profile, bio: e.target.value })
-                  }
-                  rows={3}
-                />
+                <p className="text-xs text-muted-foreground">
+                  Email cannot be changed.
+                </p>
               </div>
             </div>
-          </div>
-          <Button type="submit">Save Changes</Button>
-        </form>
-      </CardContent>
-    </Card>
+
+            {/* <div className="space-y-2">
+              <Label htmlFor="bio">Bio</Label>
+              <Textarea
+                id="bio"
+                name="bio"
+                value={formData.bio}
+                onChange={handleChange}
+                rows={4}
+                placeholder="Tell us a little about yourself"
+              />
+            </div> */}
+          </CardContent>
+          <CardFooter>
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              {isLoading ? "Saving..." : "Save Changes"}
+            </Button>
+          </CardFooter>
+        </Card>
+      </form>
+    </div>
   );
 }

@@ -55,12 +55,12 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
-interface Team{
-  id: string; 
-  name: string; 
-  email: string; 
-  role: string; 
-  avatar: string; 
+interface Team {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  avatar: string;
 }
 // Mock data
 const initialMembers = [
@@ -97,26 +97,28 @@ export default function TeamSettings({ teamId }: { teamId: string }) {
   const navigate = useRouter();
 
   // fetch team by team id
-  const fetchTeamById = async()=>{
-    const response = await axios.get('/api/team/get',{
-      headers:{
-        "Content-Type":"application/json"
+  const fetchTeamById = async () => {
+    const response = await axios.get("/api/team/get", {
+      headers: {
+        "Content-Type": "application/json",
       },
-      params:{
-        team_id:teamId
+      params: {
+        team_id: teamId,
       },
-      withCredentials:true
-    })
-    console.log(response.data)
-    setTeamName(response.data.name)
-    setMembers(response.data.members.map((t:Team) => ({
-      id: t.id,
-      name: t.name,
-      email: t.email,
-      role: response.data.adminId == t.id ? "Admin" : "Member",
-      avatar: t.avatar || "/placeholder.svg?height=40&width=40",
-    })));
-  }
+      withCredentials: true,
+    });
+    console.log(response.data);
+    setTeamName(response.data.name);
+    setMembers(
+      response.data.members.map((t: Team) => ({
+        id: t.id,
+        name: t.name,
+        email: t.email,
+        role: response.data.adminId == t.id ? "Admin" : "Member",
+        avatar: t.avatar || "/placeholder.svg?height=40&width=40",
+      }))
+    );
+  };
 
   const handleAddMember = () => {
     if (!newMemberEmail.trim()) return;
@@ -139,37 +141,58 @@ export default function TeamSettings({ teamId }: { teamId: string }) {
     setMembers(members.filter((member) => member.id !== id));
   };
 
-  const handleDeleteTeam = async() => {
+  const handleDeleteTeam = async () => {
     try {
-      const response = await axios.delete('/api/team/delete',{
-        headers:{
-          "Content-Type":"application/json"
+      const response = await axios.delete("/api/team/delete", {
+        headers: {
+          "Content-Type": "application/json",
         },
-        params:{
-          team_id: teamId
+        params: {
+          team_id: teamId,
         },
-        withCredentials: true
+        withCredentials: true,
       });
-      
+
       setTeamName("");
       setMembers([]);
       setIsDeleteTeamOpen(false);
       toast.success("Team deleted successfully");
-      navigate.push('/dashboard');
+      navigate.push("/dashboard");
     } catch (error) {
       console.error("Error deleting team:", error);
       toast.error("Failed to delete team");
     }
   };
 
-  const handleUpdateTeamName = (e: React.FormEvent) => {
-    e.preventDefault();
-    // In a real app, you would call an API to update the team name
+  const handleUpdateTeamName = async (e: React.FormEvent) => {
+    try {
+      e.preventDefault();
+      const response = await axios.put(
+        "/api/team/update/details",
+        {
+          teamName,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+          params: {
+            team_id: teamId,
+          },
+        }
+      );
+      console.log("team update response", response.data);
+      toast.success(response.data.msg);
+    } catch (error) { 
+      console.error("Error updating team:", error);
+      toast.error("Failed to update team details");
+    }
   };
 
-  useEffect(()=>{
+  useEffect(() => {
     fetchTeamById();
-  },[])
+  }, []);
 
   return (
     <div className="space-y-6 container ">
