@@ -1,8 +1,6 @@
-
 # .github/workflows/deploy.yml
-# This file contains the entire CI/CD process for deploying to AWS EC2.
 
-name: Deploy to AWS EC2 (All-in-One YAML)
+name: Deploy to AWS EC2
 
 # This workflow is triggered on pushes to the 'main' branch
 on:
@@ -10,7 +8,9 @@ on:
     branches:
       - main
 
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
+  # This job is named 'deploy'
   deploy:
     name: Deploy to EC2
     # The type of runner that the job will run on. We use the latest Ubuntu version.
@@ -18,54 +18,23 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    # Step 1: Checkout the repository code so the workflow can access it
+    # Step 1: Check out the repository code so the workflow can access it
     - name: Checkout Repository
       uses: actions/checkout@v4
 
-    # Step 2: SSH into the EC2 instance and run all deployment commands
+    # Step 2: SSH into the EC2 instance and run the deployment script
     - name: Deploy to EC2 instance
+      # Using a popular and well-maintained action for SSH
       uses: appleboy/ssh-action@v1.0.3
       with:
         # The public IP address or DNS of your EC2 instance
         host: ${{ secrets.EC2_HOST }}
-        
         # The username to connect with (e.g., ec2-user, ubuntu)
         username: ${{ secrets.EC2_USERNAME }}
-        
         # Your private SSH key
         key: ${{ secrets.SSH_KEY }}
-        
-        # All the deployment commands are listed here
+        # The script to execute on the remote server
         script: |
-          # Exit immediately if a command exits with a non-zero status.
-          set -e
-
-          # === IMPORTANT: SET YOUR VARIABLES HERE ===
-          PROJECT_DIR="/home/ubuntu/SiteSnap"  # <-- Change this to your project's directory on EC2
-          APP_NAME="sitesnap-ws"                        # <-- Change this to your PM2 application name
-          # ==========================================
-
-          echo "Navigating to project directory..."
-          cd $PROJECT_DIR
-
           echo "Pulling latest code from main branch..."
           git pull origin main
-
-          echo "Installing/updating NPM dependencies in backend directory"
-          cd backend/
-          npm i
-
-          echo "Installing/updating NPM dependencies in client directory"
-          cd ../client/
-          npm i --force
-
-          echo "Building the application (if build script exists)..."
-          # The --if-present flag means it will only run if a "build" script is in your package.json
-          npm run build --if-present
-
-          echo "Restarting application with PM2..."
-          # pm2 reload achieves a zero-downtime reload.
-          # The '||' part will start the app if it's not already running (for the first deployment).
-          pm2 reload $APP_NAME || pm2 start npm --name "$APP_NAME" -- start
-
-          echo "✅ Deployment to EC2 finished successfully!"
+          sh /home/ubuntu/SiteSnap/deploy.sh
