@@ -18,7 +18,7 @@ echo "Installing dependencies..."
 cd backend/
 npm i
 cd ../client/
-npm install --only=production # Use --only=production for backend Node.js apps
+npm install  # Use --only=production for backend Node.js apps
 
 # 3. Build the application (if you have a build step, e.g., for React, Vue, etc.)
 # The --if-present flag means it will only run if a "build" script is in your package.json
