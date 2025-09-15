@@ -11,6 +11,8 @@ APP_NAME="sitesnap-ws"                     # <-- IMPORTANT: Change this to your 
 # Navigate to the project directory
 cd $PROJECT_DIR
 
+git pull origin main
+
 # 2. Install/update dependencies
 echo "Installing dependencies..."
 cd backend/

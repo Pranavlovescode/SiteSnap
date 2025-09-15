@@ -35,6 +35,4 @@ jobs:
         key: ${{ secrets.SSH_KEY }}
         # The script to execute on the remote server
         script: |
-          echo "Pulling latest code from main branch..."
-          git pull origin main
           sh /home/ubuntu/SiteSnap/deploy.sh
