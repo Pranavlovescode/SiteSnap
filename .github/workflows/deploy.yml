@@ -57,7 +57,7 @@ jobs:
 
           echo "Installing/updating NPM dependencies in client directory"
           cd ../client/
-          npm i
+          npm i --force
 
           echo "Building the application (if build script exists)..."
           # The --if-present flag means it will only run if a "build" script is in your package.json
