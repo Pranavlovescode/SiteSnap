@@ -61,7 +61,7 @@ jobs:
 
           echo "Building the application (if build script exists)..."
           # The --if-present flag means it will only run if a "build" script is in your package.json
-          pnpm run build --if-present
+          pnpm run build
 
           echo "Restarting application with PM2..."
           # pm2 reload achieves a zero-downtime reload.
