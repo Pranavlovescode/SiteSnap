@@ -51,12 +51,17 @@ jobs:
           echo "Pulling latest code from main branch..."
           git pull origin main
 
-          echo "Installing/updating NPM dependencies..."
-          npm install
+          echo "Installing/updating NPM dependencies in backend directory"
+          cd backend/
+          pnpm i
+
+          echo "Installing/updating NPM dependencies in client directory"
+          cd ../client/
+          pnpm i
 
           echo "Building the application (if build script exists)..."
           # The --if-present flag means it will only run if a "build" script is in your package.json
-          npm run build --if-present
+          pnpm run build --if-present
 
           echo "Restarting application with PM2..."
           # pm2 reload achieves a zero-downtime reload.
