@@ -33,7 +33,7 @@ jobs:
         username: ${{ secrets.EC2_USERNAME }}
         
         # Your private SSH key
-        key: ${{ secrets.EC2_SSH_KEY }}
+        key: ${{ secrets.SSH_KEY }}
         
         # All the deployment commands are listed here
         script: |
